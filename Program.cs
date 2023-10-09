@@ -1,0 +1,75 @@
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using Newtonsoft.Json;
+using vxtwitterbot.config;
+using vxtwitterbot.Functions;
+
+namespace vxTwitterBot
+{
+    class Program
+    {
+        private static DiscordClient Client { get; set; }
+        private static CommandsNextExtension Commands { get; set; }
+
+        static async Task Main(string[] args)
+        {
+            var jsonReader = new JSONReader();
+            await jsonReader.ReadJSON();
+
+            var discordConfig = new DiscordConfiguration()
+            {
+                Intents = DiscordIntents.MessageContents | DiscordIntents.GuildMessages | DiscordIntents.Guilds,
+                Token = jsonReader.token,
+                TokenType = TokenType.Bot,
+                AutoReconnect = true
+            };
+
+            Client = new DiscordClient(discordConfig);
+
+            Client.Ready += Client_Ready;
+            Client.MessageCreated += TwitterMessageFix;
+            Client.MessageCreated += HueDolph;
+
+
+
+            await Client.ConnectAsync();
+            await Task.Delay(-1);
+        }
+
+        private static async Task TwitterMessageFix(DiscordClient sender, MessageCreateEventArgs e)
+        {
+            if ((e.Message.Content.Contains("twitter.com") || 
+                e.Message.Content.Contains("x.com")) && 
+                !e.Message.Content.Contains("vxtwitter.com"))
+            {
+
+                var message = new DiscordMessageBuilder()
+                    .AddEmbed(new DiscordEmbedBuilder()
+                    .WithTitle("Changing Twitter link to vxtwitter")
+                    .WithDescription($"**Message sent by: {e.Author.Username}**")
+                    .WithThumbnail(e.Author.AvatarUrl)
+                    .WithColor(DiscordColor.Turquoise));
+
+                await e.Channel.SendMessageAsync(message);
+                await e.Channel.SendMessageAsync(ConvertLink.TwitterLink(e.Message.Content));
+                await e.Message.DeleteAsync();
+            }
+        }
+
+        private static async Task HueDolph(DiscordClient sender, MessageCreateEventArgs e)
+        {
+            if (e.Message.Author.Id == 677243986087378951 && e.Message.MentionedUsers.Contains(sender.CurrentUser))
+            {
+
+                await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png");
+            }
+        }
+
+        private static Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
+        {
+            return Task.CompletedTask;
+        }
+    }
+}
