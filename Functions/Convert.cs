@@ -1,4 +1,7 @@
-﻿namespace vxtwitterbot.Functions
+﻿using DSharpPlus.Entities;
+using System.Threading.Channels;
+
+namespace vxtwitterbot.Functions
 {
     public class ConvertLink
     {
