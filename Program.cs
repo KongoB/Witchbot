@@ -2,7 +2,6 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using Newtonsoft.Json;
 using vxtwitterbot.config;
 using vxtwitterbot.Functions;
 
@@ -40,21 +39,23 @@ namespace vxTwitterBot
 
         private static async Task TwitterMessageFix(DiscordClient sender, MessageCreateEventArgs e)
         {
-            if ((e.Message.Content.Contains("twitter.com") || 
-                e.Message.Content.Contains("x.com")) && 
-                !e.Message.Content.Contains("vxtwitter.com"))
+            if ((e.Message.Content.Contains("https://twitter.com") || 
+                e.Message.Content.Contains("https://x.com")) && 
+                !e.Message.Content.Contains("https://vxtwitter.com") &&
+                !e.Message.Content.Contains("https://fxtwitter.com"))
             {
 
-                var message = new DiscordMessageBuilder()
+                /*var message = new DiscordMessageBuilder()
                     .AddEmbed(new DiscordEmbedBuilder()
                     .WithTitle("Changing Twitter link to vxtwitter")
                     .WithDescription($"**Message sent by: {e.Author.Username}**")
                     .WithThumbnail(e.Author.AvatarUrl)
-                    .WithColor(DiscordColor.Turquoise));
+                    .WithColor(DiscordColor.Turquoise));*/
 
-                await e.Channel.SendMessageAsync(message);
-                await e.Channel.SendMessageAsync(ConvertLink.TwitterLink(e.Message.Content));
-                await e.Message.DeleteAsync();
+                //await e.Channel.SendMessageAsync(message);
+                await e.Channel.SendMessageAsync(Links.TwitterLink(Links.FilterLinkFromMessage(e.Message.Content)));
+                //await e.Message.DeleteAsync();
+                await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
             }
         }
 
@@ -62,14 +63,16 @@ namespace vxTwitterBot
         {
             if (e.Message.Author.Id == 677243986087378951 && e.Message.MentionedUsers.Contains(sender.CurrentUser))
             {
-
                 await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png");
-            }
+            } 
         }
 
         private static Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
         {
             return Task.CompletedTask;
         }
+
+
+        
     }
 }
