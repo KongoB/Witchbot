@@ -65,8 +65,12 @@ namespace vxTwitterBot
         {
             if (e.Message.Author.Id == 677243986087378951 && e.Message.MentionedUsers.Contains(sender.CurrentUser))
             {
-                await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png");
-            } 
+                await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png");
+
+                //https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png - DOLPHO
+                //https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png - DOLPH
+
+            }
         }
 
         private static Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
