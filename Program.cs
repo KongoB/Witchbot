@@ -1,6 +1,5 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using vxtwitterbot.config;
 using vxtwitterbot.Functions;
@@ -44,6 +43,12 @@ namespace vxTwitterBot
                 !e.Message.Content.Contains("https://vxtwitter.com") &&
                 !e.Message.Content.Contains("https://fxtwitter.com"))
             {
+                
+                if (!Links.CheckIfLinkHasBrackets(e.Message.Content))
+                {
+                    await e.Channel.SendMessageAsync(Links.TwitterLink(Links.FilterLinkFromMessage(e.Message.Content)));
+                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                }
 
                 /*var message = new DiscordMessageBuilder()
                     .AddEmbed(new DiscordEmbedBuilder()
@@ -51,11 +56,8 @@ namespace vxTwitterBot
                     .WithDescription($"**Message sent by: {e.Author.Username}**")
                     .WithThumbnail(e.Author.AvatarUrl)
                     .WithColor(DiscordColor.Turquoise));*/
-
                 //await e.Channel.SendMessageAsync(message);
-                await e.Channel.SendMessageAsync(Links.TwitterLink(Links.FilterLinkFromMessage(e.Message.Content)));
                 //await e.Message.DeleteAsync();
-                await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
             }
         }
 

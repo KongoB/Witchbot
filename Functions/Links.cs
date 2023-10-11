@@ -50,5 +50,17 @@ namespace vxtwitterbot.Functions
             return vxtwitterlink;
         }
 
+        public static bool CheckIfLinkHasBrackets (string message)
+        {
+            if (message.Contains('<') && message.Contains('>'))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 }
