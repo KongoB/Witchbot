@@ -65,9 +65,9 @@ namespace vxTwitterBot
         {
             if (e.Message.Author.Id == 677243986087378951 && e.Message.MentionedUsers.Contains(sender.CurrentUser))
             {
-                await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png");
+                await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png?ex=653886d6&is=652611d6&hm=b45908aa96b35966fa35fc7a33348df8cbc9fb1b6410979f2cbb919526164a41&");
 
-                //https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png - DOLPHO
+                //https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png?ex=653886d6&is=652611d6&hm=b45908aa96b35966fa35fc7a33348df8cbc9fb1b6410979f2cbb919526164a41& - DOLPHO
                 //https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png - DOLPH
 
             }
