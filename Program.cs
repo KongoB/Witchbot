@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using vxtwitterbot.config;
 using vxtwitterbot.Functions;
@@ -71,6 +72,12 @@ namespace vxTwitterBot
                 //https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png - DOLPH
 
             }
+
+            if (e.Message.Author.Id == 677243986087378951 && e.Message.Content.Contains(":ASgibsHiss:"))
+            {
+                await e.Message.CreateReactionAsync(DiscordEmoji.FromName(sender, ":FL_Scared:"));
+            }
+
         }
 
         private static Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
