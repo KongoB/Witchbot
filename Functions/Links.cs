@@ -8,30 +8,54 @@ namespace vxtwitterbot.Functions
     public class Links
     {
 
-        public static string FilterLinkFromMessage (string message)
+        public static string FilterLinkFromMessage (string message, string platform)
         {
             StringBuilder links = new StringBuilder ();
 
-            string pattern = @"https?://(?:x|twitter).com/([^/]+/status/\d+)";
-            Regex regex = new Regex (pattern);
+            string pattern = "invalid";
 
-            MatchCollection match = regex.Matches (message);
-            bool firstMessage = true;
-
-            foreach (var link in match)
+            if (platform == "twitter")
             {
-                if (firstMessage)
+                pattern = @"https?://(?:x|twitter).com/([^/]+/status/\d+)";
+            }
+            if (platform == "reddit")
+            {
+                if (message.Contains("/comments/"))
                 {
-                    links.Append (link.ToString ());
-                    firstMessage = false;
+                    pattern = @"(https?://)?(\w+)?\.?(reddit\.com/|redd\.it/)(r/\w+/)?(comments/)?(\w+)/(\w+)";
                 }
-                else
+                else if (message.Contains("/s/"))
                 {
-                    links.Append ("\n" + link.ToString ());
+                    pattern = @"(https?://)?(\w+)?\.?(reddit\.com/|redd\.it/)(r/\w+/)?(s/)?(\w+)/(\w+)";
                 }
             }
 
-            return links.ToString ();
+            if (platform == "reddit" && pattern == "invalid")
+            {
+                return pattern;
+            }
+            else
+            {
+                Regex regex = new Regex(pattern);
+
+                MatchCollection match = regex.Matches(message);
+                bool firstMessage = true;
+
+                foreach (var link in match)
+                {
+                    if (firstMessage)
+                    {
+                        links.Append(link.ToString());
+                        firstMessage = false;
+                    }
+                    else
+                    {
+                        links.Append("\n" + link.ToString());
+                    }
+                }
+
+                return links.ToString();
+            }
         }
 
         public static string TwitterLink(string link)
@@ -48,6 +72,14 @@ namespace vxtwitterbot.Functions
             }
 
             return vxtwitterlink;
+        }
+
+        public static string RedditLink(string link)
+        {
+
+            string xRedditLink = link.Replace("reddit.com", "rxddit.com");
+
+            return xRedditLink;
         }
 
         public static bool CheckIfLinkHasBrackets (string message)

@@ -28,7 +28,7 @@ namespace vxTwitterBot
             Client = new DiscordClient(discordConfig);
 
             Client.Ready += Client_Ready;
-            Client.MessageCreated += TwitterMessageFix;
+            Client.MessageCreated += LinkMessageFix;
             Client.MessageCreated += HueDolph;
 
 
@@ -37,8 +37,11 @@ namespace vxTwitterBot
             await Task.Delay(-1);
         }
 
-        private static async Task TwitterMessageFix(DiscordClient sender, MessageCreateEventArgs e)
+        private static async Task LinkMessageFix(DiscordClient sender, MessageCreateEventArgs e)
         {
+
+            string message = e.Message.Content;
+
             if ((e.Message.Content.Contains("https://twitter.com") || 
                 e.Message.Content.Contains("https://x.com")) && 
                 !e.Message.Content.Contains("https://vxtwitter.com") &&
@@ -47,35 +50,50 @@ namespace vxTwitterBot
                 
                 if (!Links.CheckIfLinkHasBrackets(e.Message.Content))
                 {
-                    await e.Channel.SendMessageAsync(Links.TwitterLink(Links.FilterLinkFromMessage(e.Message.Content)));
+                    await e.Channel.SendMessageAsync(Links.TwitterLink(Links.FilterLinkFromMessage(message, "twitter")));
                     await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
                 }
-
-                /*var message = new DiscordMessageBuilder()
-                    .AddEmbed(new DiscordEmbedBuilder()
-                    .WithTitle("Changing Twitter link to vxtwitter")
-                    .WithDescription($"**Message sent by: {e.Author.Username}**")
-                    .WithThumbnail(e.Author.AvatarUrl)
-                    .WithColor(DiscordColor.Turquoise));*/
-                //await e.Channel.SendMessageAsync(message);
-                //await e.Message.DeleteAsync();
             }
+
+            if ((e.Message.Content.Contains("https://reddit.com") ||
+                e.Message.Content.Contains("https://www.reddit.com")) &&
+                (!e.Message.Content.Contains("https://rxddit.com") ||
+                !e.Message.Content.Contains("https://www.rxddit.com")))
+            {
+                if (!Links.CheckIfLinkHasBrackets(e.Message.Content))
+                {
+                    string filteredMessage = Links.FilterLinkFromMessage(message, "reddit");
+
+                    if (filteredMessage != "invalid") 
+                    {
+                        await e.Channel.SendMessageAsync(Links.RedditLink(filteredMessage));
+                        await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                    }
+                }
+            }
+
+
+
         }
 
         private static async Task HueDolph(DiscordClient sender, MessageCreateEventArgs e)
         {
-            if (e.Message.Author.Id == 677243986087378951 && e.Message.MentionedUsers.Contains(sender.CurrentUser))
+
+            if (e.Message.Author.Id == 677243986087378951)
             {
-                await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png?ex=653886d6&is=652611d6&hm=b45908aa96b35966fa35fc7a33348df8cbc9fb1b6410979f2cbb919526164a41&");
+                if (e.Message.MentionedUsers.Contains(sender.CurrentUser))
+                {
+                    await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png?ex=653886d6&is=652611d6&hm=b45908aa96b35966fa35fc7a33348df8cbc9fb1b6410979f2cbb919526164a41&");
 
-                //https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png?ex=653886d6&is=652611d6&hm=b45908aa96b35966fa35fc7a33348df8cbc9fb1b6410979f2cbb919526164a41& - DOLPHO
-                //https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png - DOLPH
+                    //https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png?ex=653886d6&is=652611d6&hm=b45908aa96b35966fa35fc7a33348df8cbc9fb1b6410979f2cbb919526164a41& - DOLPHO
+                    //https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png - DOLPH
 
-            }
+                }
 
-            if (e.Message.Author.Id == 677243986087378951 && e.Message.Content.Contains(":ASgibsHiss:"))
-            {
-                await e.Message.CreateReactionAsync(DiscordEmoji.FromName(sender, ":FL_Scared:"));
+                if (e.Message.Content.Contains(":ASgibsHiss:"))
+                {
+                    await e.Message.CreateReactionAsync(DiscordEmoji.FromName(sender, ":FL_Scared:"));
+                }
             }
 
         }
