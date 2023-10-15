@@ -3,3 +3,4 @@ services:
     bot:
         build: .
         image: vxtwitterbot
+        restart: always
