@@ -1,6 +1,4 @@
-﻿using DSharpPlus.Entities;
-using System.Threading.Channels;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Text;
 
 namespace vxtwitterbot.Functions

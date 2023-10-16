@@ -12,9 +12,12 @@ namespace vxTwitterBot
         private static DiscordClient Client { get; set; }
         private static CommandsNextExtension Commands { get; set; }
 
+        private static JSONReader jsonReader = new JSONReader();
+        private static bool jsonRead = false;
+
         static async Task Main(string[] args)
         {
-            var jsonReader = new JSONReader();
+            jsonReader = new JSONReader();
             await jsonReader.ReadJSON();
 
             var discordConfig = new DiscordConfiguration()
@@ -40,31 +43,31 @@ namespace vxTwitterBot
         private static async Task LinkMessageFix(DiscordClient sender, MessageCreateEventArgs e)
         {
 
-            string message = e.Message.Content;
-
-            if ((e.Message.Content.Contains("https://twitter.com") || 
-                e.Message.Content.Contains("https://x.com")) && 
-                !e.Message.Content.Contains("https://vxtwitter.com") &&
-                !e.Message.Content.Contains("https://fxtwitter.com"))
+            if (!jsonRead)
             {
-                
-                if (!Links.CheckIfLinkHasBrackets(e.Message.Content))
-                {
-                    await e.Channel.SendMessageAsync(Links.TwitterLink(Links.FilterLinkFromMessage(message, "twitter")));
-                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
-                }
+                jsonReader = new JSONReader();
+                await jsonReader.ReadJSON();
             }
 
-            if ((e.Message.Content.Contains("https://reddit.com") ||
-                e.Message.Content.Contains("https://www.reddit.com")) &&
-                (!e.Message.Content.Contains("https://rxddit.com") ||
-                !e.Message.Content.Contains("https://www.rxddit.com")))
-            {
-                if (!Links.CheckIfLinkHasBrackets(e.Message.Content))
+            string message = e.Message.Content;
+
+            if (jsonReader.FilteredWebsites.Any(item => message.Contains(item)) && 
+                !jsonReader.IgnoredWebsites.Any(item => message.Contains(item))) 
+
+            { 
+                if (message.Contains("twitter") || message.Contains("x.com"))
+                {
+                    if (!Links.CheckIfLinkHasBrackets(e.Message.Content))
+                    {
+                        await e.Channel.SendMessageAsync(Links.TwitterLink(Links.FilterLinkFromMessage(message, "twitter")));
+                        await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                    }
+                }
+                if (message.Contains("reddit"))
                 {
                     string filteredMessage = Links.FilterLinkFromMessage(message, "reddit");
 
-                    if (filteredMessage != "invalid") 
+                    if (filteredMessage != "invalid")
                     {
                         await e.Channel.SendMessageAsync(Links.RedditLink(filteredMessage));
                         await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);

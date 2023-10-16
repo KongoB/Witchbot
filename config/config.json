@@ -1,3 +1,15 @@
 {
-  "token": "TOKEN"
+  "token": "TOKEN",
+  "FilteredWebsites": [
+    "https://twitter.com",
+    "https://x.com",
+    "https://reddit.com",
+    "https://www.reddit.com"
+  ],
+  "IgnoredWebsites": [
+    "https://vxtwitter.com",
+    "https://fxtwitter.com",
+    "https://rxddit.com",
+    "https://www.rxddit.com"
+  ]
 }

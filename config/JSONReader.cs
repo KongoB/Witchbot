@@ -5,6 +5,9 @@ namespace vxtwitterbot.config
     public class JSONReader
     {
         public string token { get; set; }
+        public string[] FilteredWebsites { get; set; }
+        public string[] IgnoredWebsites { get; set; }
+
 
         public async Task ReadJSON()
         {
@@ -14,6 +17,8 @@ namespace vxtwitterbot.config
                 JsonStructure data = JsonConvert.DeserializeObject<JsonStructure>(json);
 
                 this.token = data.token;
+                this.FilteredWebsites = data.FilteredWebsites;
+                this.IgnoredWebsites = data.IgnoredWebsites;
             }
         }
     }
@@ -21,5 +26,7 @@ namespace vxtwitterbot.config
     internal sealed class JsonStructure
     {
         public string token { get; set; }
+        public string[] FilteredWebsites { get; set; }
+        public string[] IgnoredWebsites { get; set; }
     }
 }
