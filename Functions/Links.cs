@@ -5,10 +5,9 @@ namespace vxtwitterbot.Functions
 {
     public class Links
     {
-
-        public static string FilterLinkFromMessage (string message, string platform)
+        public static string FilterLinkFromMessage(string message, string platform)
         {
-            StringBuilder links = new StringBuilder ();
+            StringBuilder links = new StringBuilder();
 
             string pattern = "invalid";
 
@@ -32,28 +31,31 @@ namespace vxtwitterbot.Functions
             {
                 return pattern;
             }
-            else
+
+
+            Regex regex = new Regex(pattern);
+
+            MatchCollection match = regex.Matches(message);
+
+
+
+            bool firstMessage = true;
+
+
+            foreach (var link in match)
             {
-                Regex regex = new Regex(pattern);
-
-                MatchCollection match = regex.Matches(message);
-                bool firstMessage = true;
-
-                foreach (var link in match)
+                if (firstMessage)
                 {
-                    if (firstMessage)
-                    {
-                        links.Append(link.ToString());
-                        firstMessage = false;
-                    }
-                    else
-                    {
-                        links.Append("\n" + link.ToString());
-                    }
+                    links.Append(link.ToString());
+                    firstMessage = false;
                 }
-
-                return links.ToString();
+                else
+                {
+                    links.Append("\n" + link.ToString());
+                }
             }
+
+            return links.ToString();
         }
 
         public static string TwitterLink(string link)
@@ -80,7 +82,7 @@ namespace vxtwitterbot.Functions
             return xRedditLink;
         }
 
-        public static bool CheckIfLinkHasBrackets (string message)
+        public static bool CheckIfLinkHasBrackets(string message)
         {
             if (message.Contains('<') && message.Contains('>'))
             {
@@ -90,6 +92,21 @@ namespace vxtwitterbot.Functions
             {
                 return false;
             }
+        }
+
+        public static string CheckIfSpoilerTag(string links, string message)
+        {
+            bool containsSpoilers = message.Contains("||") && message.IndexOf("||", message.IndexOf("||") + 1) != -1;
+
+            if (containsSpoilers)
+            {
+                return "||" + links + "||";
+            }
+            else
+            {
+                return links;
+            }
+
         }
 
     }

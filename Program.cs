@@ -34,11 +34,12 @@ namespace vxTwitterBot
             Client.MessageCreated += LinkMessageFix;
             Client.MessageCreated += HueDolph;
 
-
+            
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
         }
+
 
         private static async Task LinkMessageFix(DiscordClient sender, MessageCreateEventArgs e)
         {
@@ -57,19 +58,30 @@ namespace vxTwitterBot
             { 
                 if (message.Contains("twitter") || message.Contains("x.com"))
                 {
-                    if (!Links.CheckIfLinkHasBrackets(e.Message.Content))
+
+                    if (Links.CheckIfLinkHasBrackets(e.Message.Content))
                     {
-                        await e.Channel.SendMessageAsync(Links.TwitterLink(Links.FilterLinkFromMessage(message, "twitter")));
-                        await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                        return;
                     }
+
+                    string output = Links.TwitterLink(Links.FilterLinkFromMessage(message, "twitter"));
+
+                    output = Links.CheckIfSpoilerTag(output, message);
+
+                    await e.Channel.SendMessageAsync(output);
+                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+
                 }
                 if (message.Contains("reddit"))
                 {
                     string filteredMessage = Links.FilterLinkFromMessage(message, "reddit");
+                    string output = Links.RedditLink(filteredMessage);
+
+                    output = Links.CheckIfSpoilerTag(output, message);
 
                     if (filteredMessage != "invalid")
                     {
-                        await e.Channel.SendMessageAsync(Links.RedditLink(filteredMessage));
+                        await e.Channel.SendMessageAsync(output);
                         await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
                     }
                 }
@@ -101,12 +113,12 @@ namespace vxTwitterBot
 
         }
 
-        private static Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
+        private static async Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
         {
-            return Task.CompletedTask;
+            await Client.UpdateStatusAsync(new DiscordActivity("XD"));
         }
-
-
         
+
+
     }
 }
