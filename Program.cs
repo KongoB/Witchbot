@@ -68,7 +68,7 @@ namespace vxTwitterBot
 
                     output = Links.CheckIfSpoilerTag(output, message);
 
-                    await e.Channel.SendMessageAsync(e.Message.MentionedUsers.ToString() + " " + output);
+                    await e.Channel.SendMessageAsync(output);
                     await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
 
                 }
