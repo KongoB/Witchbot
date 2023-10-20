@@ -59,7 +59,7 @@ namespace vxTwitterBot
                 if (message.Contains("twitter") || message.Contains("x.com"))
                 {
 
-                    if (Links.CheckIfLinkHasBrackets(e.Message.Content))
+                    if (Links.CheckIfLinkHasBrackets(e.Message.Content) && !e.Message.MentionedUsers.Any())
                     {
                         return;
                     }
@@ -68,7 +68,7 @@ namespace vxTwitterBot
 
                     output = Links.CheckIfSpoilerTag(output, message);
 
-                    await e.Channel.SendMessageAsync(output);
+                    await e.Channel.SendMessageAsync(e.Message.MentionedUsers.ToString() + " " + output);
                     await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
 
                 }
