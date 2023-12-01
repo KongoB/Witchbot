@@ -55,40 +55,11 @@ namespace vxTwitterBot
             if (jsonReader.FilteredWebsites.Any(item => message.Contains(item)) && 
                 !jsonReader.IgnoredWebsites.Any(item => message.Contains(item))) 
 
-            { 
-                if (message.Contains("twitter") || message.Contains("x.com"))
-                {
-
-                    if (Links.CheckIfLinkHasBrackets(e.Message.Content) && !e.Message.MentionedUsers.Any())
-                    {
-                        return;
-                    }
-
-                    string output = Links.TwitterLink(Links.FilterLinkFromMessage(message, "twitter"));
-
-                    output = Links.CheckIfSpoilerTag(output, message);
-
-                    await e.Channel.SendMessageAsync(output);
-                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
-
-                }
-                if (message.Contains("reddit"))
-                {
-                    string filteredMessage = Links.FilterLinkFromMessage(message, "reddit");
-                    string output = Links.RedditLink(filteredMessage);
-
-                    output = Links.CheckIfSpoilerTag(output, message);
-
-                    if (filteredMessage != "invalid")
-                    {
-                        await e.Channel.SendMessageAsync(output);
-                        await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
-                    }
-                }
+            {
+                Sites.TwitterFunc(e);
+                Sites.RedditFunc(e);
+                Sites.TiktokFunc(e);
             }
-
-
-
         }
 
         private static async Task HueDolph(DiscordClient sender, MessageCreateEventArgs e)
@@ -98,7 +69,7 @@ namespace vxTwitterBot
             {
                 if (e.Message.MentionedUsers.Contains(sender.CurrentUser))
                 {
-                    await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png?ex=653886d6&is=652611d6&hm=b45908aa96b35966fa35fc7a33348df8cbc9fb1b6410979f2cbb919526164a41&");
+                    await e.Message.RespondAsync("https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png");
 
                     //https://cdn.discordapp.com/attachments/550834390272573450/1161500716788092949/avatars-253MmMf9QZzxVBJi-rvlyeg-t500x500.png?ex=653886d6&is=652611d6&hm=b45908aa96b35966fa35fc7a33348df8cbc9fb1b6410979f2cbb919526164a41& - DOLPHO
                     //https://cdn.discordapp.com/attachments/588688292506107905/1160784277546471444/dolph.png - DOLPH

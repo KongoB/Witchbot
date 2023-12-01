@@ -26,6 +26,10 @@ namespace vxtwitterbot.Functions
                     pattern = @"(https?://)?(\w+)?\.?(reddit\.com/|redd\.it/)(r/\w+/)?(s/)?(\w+)/(\w+)";
                 }
             }
+            if (platform == "tiktok")
+            {
+                pattern = @"^.*https:\/\/(?:m|www|vm)?\.?tiktok\.com\/((?:.*\b(?:(?:usr|v|embed|user|video)\/|\?shareId=|\&item_id=)(\d+))|\w+)";
+            }
 
             if (platform == "reddit" && pattern == "invalid")
             {
@@ -82,9 +86,16 @@ namespace vxtwitterbot.Functions
             return xRedditLink;
         }
 
+        public static string TiktokLink(string link)
+        {
+            string xTwitterLink = link.Replace("tiktok.com", "tiktxk.com");
+
+            return xTwitterLink;
+        }
+
         public static bool CheckIfLinkHasBrackets(string message)
         {
-            if (message.Contains('<') && message.Contains('>'))
+            if (message.Contains("<https://"))
             {
                 return true;
             }
