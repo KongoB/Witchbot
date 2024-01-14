@@ -70,10 +70,10 @@ namespace vxTwitterBot
                 await e.Message.CreateReactionAsync(DiscordEmoji.FromName(sender, ":FL_Scared:"));
             }
 
-            //if (e.Message.MentionedUsers.Contains(sender.CurrentUser) && e.Message.)
-            //{
-            //    await e.Message.RespondAsync("Ping!");
-            //}
+            if (e.Message.MentionedUsers.Contains(sender.CurrentUser) && e.Message.Reference == null)
+            {
+                await e.Message.RespondAsync("Ping!");
+            }
 
         }
 
