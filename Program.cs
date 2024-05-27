@@ -58,7 +58,7 @@ namespace vxTwitterBot
             {
                 Sites.TwitterFunc(e);
                 Sites.RedditFunc(e);
-                Sites.TiktokFunc(e);
+                //Sites.TiktokFunc(e);
             }
         }
 
