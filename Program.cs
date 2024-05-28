@@ -52,8 +52,9 @@ namespace vxTwitterBot
 
             string message = e.Message.Content;
 
-            if (jsonReader.FilteredWebsites.Any(item => message.Contains(item)) && 
-                !jsonReader.IgnoredWebsites.Any(item => message.Contains(item))) 
+            if (jsonReader.FilteredWebsites.Any(item => message.Contains(item)) &&
+                !jsonReader.IgnoredWebsites.Any(item => message.Contains(item)) &&
+                !message.Contains("nofix"))
 
             {
                 Sites.TwitterFunc(e);
@@ -72,7 +73,14 @@ namespace vxTwitterBot
 
             if (e.Message.MentionedUsers.Contains(sender.CurrentUser) && e.Message.Reference == null)
             {
-                await e.Message.RespondAsync("Ping!");
+                if (e.Message.Content.Contains("help"))
+                {
+                    await e.Message.RespondAsync("You can inlude \"nofix\" in your message to make me ignore a message");
+                }
+                else
+                {
+                    await e.Message.RespondAsync("Ping!");
+                }
             }
 
         }
