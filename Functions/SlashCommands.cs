@@ -1,8 +1,5 @@
-﻿using DSharpPlus;
-using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
+﻿using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using System.Security.Cryptography.X509Certificates;
 
 namespace vxtwitterbot.Functions
 {
@@ -17,14 +14,11 @@ namespace vxtwitterbot.Functions
                 Title = "Discord bot for fixing embeds",
                 Description = "Here are the available commands:",
                 Color = DiscordColor.Azure,
-                ImageUrl = ctx.Client.CurrentUser.AvatarUrl,
             };
 
             embeded.AddField("/delete", "Deletes a message. Provde a message ID of the bot message you want deleted. You can also reply to the message with the word delete");
 
             await ctx.CreateResponseAsync(embed: embeded);
-
-            //await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed));
         }
 
         [SlashCommand("delete", "Deletes a message sent from the bot")]
