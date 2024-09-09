@@ -21,8 +21,7 @@ namespace vxtwitterbot.Functions
 
                 output = Links.CheckIfSpoilerTag(output, message);
 
-                await e.Channel.SendMessageAsync(output);
-                await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                await e.Message.RespondAsync(output);
 
             }
         }
@@ -40,8 +39,7 @@ namespace vxtwitterbot.Functions
 
                 if (filteredMessage != "invalid")
                 {
-                    await e.Channel.SendMessageAsync(output);
-                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                    await e.Message.RespondAsync(output);
                 }
             }
         }
@@ -57,8 +55,7 @@ namespace vxtwitterbot.Functions
 
                 output = Links.CheckIfSpoilerTag(output, message);
 
-                await e.Channel.SendMessageAsync(output);
-                await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                await e.Message.RespondAsync(output);
             }
         }
 

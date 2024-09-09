@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.SlashCommands;
 using vxtwitterbot.config;
 using vxtwitterbot.Functions;
 
@@ -11,7 +12,8 @@ namespace vxTwitterBot
     {
         private static DiscordClient Client { get; set; }
         private static CommandsNextExtension Commands { get; set; }
-
+        private static SlashCommandsExtension SlashCommands { get; set; }
+        
         private static JSONReader jsonReader = new JSONReader();
         private static bool jsonRead = false;
 
@@ -19,6 +21,8 @@ namespace vxTwitterBot
         {
             jsonReader = new JSONReader();
             await jsonReader.ReadJSON();
+            
+            //SlashCommands.RegisterCommands<vxtwitterbot.Functions.SlashCommands>(588533489146658816);
             
             var discordConfig = new DiscordConfiguration()
             {
@@ -30,10 +34,14 @@ namespace vxTwitterBot
 
             Client = new DiscordClient(discordConfig);
 
+            var slash = Client.UseSlashCommands();
+            slash.RegisterCommands<vxtwitterbot.Functions.SlashCommands>();
+
+
             Client.Ready += Client_Ready;
             Client.MessageCreated += LinkMessageFix;
             Client.MessageCreated += Utility;
-
+            Client.MessageCreated += DeleteMessage;
             
 
             await Client.ConnectAsync();
@@ -60,6 +68,8 @@ namespace vxTwitterBot
                 Sites.TwitterFunc(e);
                 Sites.RedditFunc(e);
                 //Sites.TiktokFunc(e);
+
+                await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
             }
         }
 
@@ -75,7 +85,7 @@ namespace vxTwitterBot
             {
                 if (e.Message.Content.Contains("help"))
                 {
-                    await e.Message.RespondAsync("You can inlude \"nofix\" in your message to make me ignore a message");
+                    await e.Message.RespondAsync("You can include \"nofix\" in your message to make me ignore a message");
                 }
                 else
                 {
@@ -83,6 +93,29 @@ namespace vxTwitterBot
                 }
             }
 
+        }
+
+        private static async Task DeleteMessage(DiscordClient sender, MessageCreateEventArgs e)
+        {
+
+            if (e.Message.Content.ToLower().Contains("delete") && e.Message.Reference != null)
+            {
+                if (e.Message.ReferencedMessage.Reference == null)
+                {
+                    return;
+                }
+
+                var message = await e.Channel.GetMessageAsync(e.Message.ReferencedMessage.Reference.Message.Id);
+
+
+                if (e.Message.ReferencedMessage.Author == sender.CurrentUser &&
+                    message.Author == e.Author)
+                {
+                    await e.Message.ReferencedMessage.DeleteAsync();
+                }
+            }
+
+            
         }
 
         private static async Task Client_Ready(DiscordClient sender, DSharpPlus.EventArgs.ReadyEventArgs args)
