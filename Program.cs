@@ -34,18 +34,21 @@ namespace vxTwitterBot
 
             Client = new DiscordClient(discordConfig);
 
-            var slash = Client.UseSlashCommands();
-            slash.RegisterCommands<vxtwitterbot.Functions.SlashCommands>();
-
-
             Client.Ready += Client_Ready;
             Client.MessageCreated += LinkMessageFix;
             Client.MessageCreated += Utility;
             Client.MessageCreated += DeleteMessage;
-            
+            //Client.MessageCreated += Clear_cache;
+
+
+            var slash = Client.UseSlashCommands();
+            slash.RegisterCommands<vxtwitterbot.Functions.SlashCommands>();
+
+
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
+
         }
 
 
@@ -67,6 +70,7 @@ namespace vxTwitterBot
             {
                 Sites.TwitterFunc(e);
                 Sites.RedditFunc(e);
+                Sites.PixivFunc(e);
                 //Sites.TiktokFunc(e);
 
                 await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
@@ -124,6 +128,34 @@ namespace vxTwitterBot
         }
         
 
+
+        //private static async Task Clear_cache(DiscordClient sender, MessageCreateEventArgs e)
+        //{
+        //    if (e.Message.Content.Contains("clearcache"))
+        //    {
+        //        var globalCommands = await Client.GetGlobalApplicationCommandsAsync();
+
+        //        foreach (var command in globalCommands)
+        //        {
+        //            await e.Channel.SendMessageAsync(command.Name);
+        //            await Client.DeleteGlobalApplicationCommandAsync(command.Id);
+        //        }
+
+        //        var guildCommands = await Client.GetGuildApplicationCommandsAsync(635562812864725012);
+        //        var guildCommands2 = await Client.GetGuildApplicationCommandsAsync(588533489146658816);
+
+        //        foreach (var command in guildCommands)
+        //        {
+        //            await e.Channel.SendMessageAsync(command.Name);
+        //            await Client.DeleteGuildApplicationCommandAsync(635562812864725012, command.Id);
+        //        }
+        //        foreach (var command in guildCommands2)
+        //        {
+        //            await e.Channel.SendMessageAsync(command.Name);
+        //            await Client.DeleteGuildApplicationCommandAsync(588533489146658816, command.Id);
+        //        }
+        //    }
+        //}
 
     }
 }

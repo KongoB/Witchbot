@@ -59,5 +59,20 @@ namespace vxtwitterbot.Functions
             }
         }
 
+        public static async void PixivFunc (MessageCreateEventArgs e)
+        {
+            string message = e.Message.Content;
+
+            if (message.Contains("pixiv"))
+            {
+                string filteredMessage = Links.FilterLinkFromMessage(message, "pixiv");
+                string output = Links.PixivLink(filteredMessage);
+
+                output = Links.CheckIfSpoilerTag(output, message);
+
+                await e.Message.RespondAsync(output);
+            }
+        }
+
     }
 }

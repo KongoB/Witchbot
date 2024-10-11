@@ -8,7 +8,9 @@
     "https://new.reddit.com",
     "https://vm.tiktok.com",
     "https://tiktok.com",
-    "https://www.tiktok.com"
+    "https://www.tiktok.com",
+    "https://pixiv.net",
+    "https://www.pixiv.net"
   ],
   "IgnoredWebsites": [
     "https://vxtwitter.com",
@@ -17,6 +19,8 @@
     "https://www.rxddit.com",
     "https://vm.tiktxk.com",
     "https://tiktxk.com",
-    "https://www.tiktxk.com"
+    "https://www.tiktxk.com",
+    "https://phixiv.net",
+    "https://www.phixiv.net"
   ]
 }

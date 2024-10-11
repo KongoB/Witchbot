@@ -17,25 +17,16 @@ namespace vxtwitterbot.Functions
             }
             if (platform == "reddit")
             {
-                if (message.Contains("/comments/"))
-                {
-                    pattern = @"(https?://)?(\w+)?\.?(reddit\.com/|redd\.it/)(r/\w+/)?(comments/)?(\w+)/(\w+)";
-                }
-                else if (message.Contains("/s/"))
-                {
-                    pattern = @"(https?://)?(\w+)?\.?(reddit\.com/|redd\.it/)(r/\w+/)?(s/)?(\w+)/(\w+)";
-                }
+                pattern = @"(https?://)?(\w+)?\.?(reddit\.com/|redd\.it/)(r/\w+/)?(?:s|comments/)?(\w+)/(\w+)";
             }
             if (platform == "tiktok")
             {
                 pattern = @"^.*https:\/\/(?:m|www|vm)?\.?tiktok\.com\/((?:.*\b(?:(?:usr|v|embed|user|video)\/|\?shareId=|\&item_id=)(\d+))|\w+)";
             }
-
-            if (platform == "reddit" && pattern == "invalid")
+            if (platform == "pixiv")
             {
-                return pattern;
+                pattern = @"https?://?(\w+)?\.?pixiv\.net\/(?:[a-z]{2}\/)?artworks\/\d+";
             }
-
 
             Regex regex = new Regex(pattern);
 
@@ -72,7 +63,7 @@ namespace vxtwitterbot.Functions
             }
             if ((link.Contains("x.com")))
             {
-                vxtwitterlink = link.Replace("x.com", "vxtwitter.com");
+                vxtwitterlink = link.Replace("x.com", "fixvx.com");
             }
 
             return vxtwitterlink;
@@ -92,6 +83,26 @@ namespace vxtwitterbot.Functions
 
             return xTwitterLink;
         }
+
+        public static string PixivLink(string link)
+        {
+            string xPixivLink = link.Replace("pixiv.net", "phixiv.net");
+
+            return xPixivLink;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         public static bool CheckIfLinkHasBrackets(string message)
         {

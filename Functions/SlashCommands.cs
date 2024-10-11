@@ -26,7 +26,7 @@ namespace vxtwitterbot.Functions
 
             if (string.IsNullOrEmpty(messageID))
             {
-                await ctx.CreateResponseAsync("Please provide a valid message ID.");
+                await ctx.CreateResponseAsync("Please provide a valid message ID.", true);
                 return;
             }
 
