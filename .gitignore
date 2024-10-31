@@ -398,4 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Discord token
-config/.env
+config/token.json

@@ -8,14 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="config\.env" />
     <None Remove="config\websites.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="config\.env">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="config\websites.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

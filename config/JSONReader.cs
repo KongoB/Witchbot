@@ -16,9 +16,15 @@ namespace vxtwitterbot.config
                 string json = await sr.ReadToEndAsync();
                 JsonStructure data = JsonConvert.DeserializeObject<JsonStructure>(json);
 
-                this.token = data.token;
                 this.FilteredWebsites = data.FilteredWebsites;
                 this.IgnoredWebsites = data.IgnoredWebsites;
+            }
+            using (StreamReader sr = new StreamReader("config/token.json"))
+            {
+                string json = await sr.ReadToEndAsync();
+                JsonStructure data = JsonConvert.DeserializeObject<JsonStructure>(json);
+
+                this.token = data.token;
             }
         }
     }

@@ -15,5 +15,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
 COPY --from=build-env /app/out .
 
-COPY config /app/config
+COPY config/* /
 ENTRYPOINT ["dotnet", "vxtwitterbot.dll"]
