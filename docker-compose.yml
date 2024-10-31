@@ -4,5 +4,3 @@ services:
         build: .
         image: vxtwitterbot
         restart: always
-        environment:
-            - DISCORD_TOKEN=${DISCORD_TOKEN}
