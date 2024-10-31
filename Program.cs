@@ -27,7 +27,8 @@ namespace vxTwitterBot
             var discordConfig = new DiscordConfiguration()
             {
                 Intents = DiscordIntents.MessageContents | DiscordIntents.GuildMessages | DiscordIntents.Guilds,
-                Token = jsonReader.token,
+                Token = Environment.GetEnvironmentVariable("DISCORD_TOKEN"),
+                //Token = jsonReader.token,
                 TokenType = TokenType.Bot,
                 AutoReconnect = true
             };
