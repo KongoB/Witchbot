@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using System.Text;
+using System.Linq;
 
 namespace vxtwitterbot.Functions
 {
@@ -73,6 +74,8 @@ namespace vxtwitterbot.Functions
         {
 
             string xRedditLink = link.Replace("reddit.com", "rxddit.com");
+
+            xRedditLink += ("\nDue to limitations with Reddit, videos might be without audio.");
 
             return xRedditLink;
         }
