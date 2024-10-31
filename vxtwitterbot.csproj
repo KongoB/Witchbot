@@ -8,6 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="config\.env" />
+    <None Remove="config\websites.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="config\.env">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\websites.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DSharpPlus" Version="4.5.0" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.5.0" />
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.5.0" />
