@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
+using System.Reflection.Metadata.Ecma335;
 using vxtwitterbot.config;
 using vxtwitterbot.Functions;
 
@@ -63,9 +64,11 @@ namespace vxTwitterBot
 
             string message = e.Message.Content;
 
+
             if (jsonReader.FilteredWebsites.Any(item => message.Contains(item)) &&
                 !jsonReader.IgnoredWebsites.Any(item => message.Contains(item)) &&
-                !message.Contains("nofix"))
+                !message.Contains("nofix") &&
+                !jsonReader.IgnoredPeople.Contains(e.Author.Id.ToString()))
 
             {
                 Sites.TwitterFunc(e);

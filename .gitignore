@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 # Discord token
 config/token.json
+config/websites.json

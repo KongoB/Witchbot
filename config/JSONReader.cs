@@ -7,6 +7,7 @@ namespace vxtwitterbot.config
         public string token { get; set; }
         public string[] FilteredWebsites { get; set; }
         public string[] IgnoredWebsites { get; set; }
+        public string[] IgnoredPeople { get; set; }
 
 
         public async Task ReadJSON()
@@ -26,6 +27,13 @@ namespace vxtwitterbot.config
 
                 this.token = data.token;
             }
+            using (StreamReader sr = new StreamReader("ignored.json"))
+            {
+                string json = await sr.ReadToEndAsync();
+                JsonStructure data = JsonConvert.DeserializeObject<JsonStructure>(json);
+
+                this.IgnoredPeople = data.IgnoredPeople;
+            }
         }
     }
 
@@ -34,5 +42,6 @@ namespace vxtwitterbot.config
         public string token { get; set; }
         public string[] FilteredWebsites { get; set; }
         public string[] IgnoredWebsites { get; set; }
+        public string[] IgnoredPeople { get; set; }
     }
 }
