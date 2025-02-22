@@ -77,6 +77,11 @@ namespace vxTwitterBot
                 //Sites.TiktokFunc(e);
 
                 await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                await Task.Delay(2000);
+                if (e.Message.Embeds.Any())
+                {
+                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                }
             }
         }
 
