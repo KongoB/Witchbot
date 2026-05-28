@@ -16,10 +16,10 @@ namespace embedserver
         public string? Text {get; set; }
 
         [JsonPropertyName("author")]
-        public string? Author {get; set; }
+        public Author? Author {get; set; }
 
         [JsonPropertyName("media")]
-        public string? Media {get; set; }
+        public Media? Media {get; set; }
     }
 
     public class Author
