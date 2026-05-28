@@ -5,7 +5,7 @@ namespace vxtwitterbot.Functions
     public class Sites
     {
 
-        public static async void TwitterFunc(MessageCreateEventArgs e)
+        public static async Task TwitterFunc(MessageCreatedEventArgs e)
         {
             string message = e.Message.Content;
 
@@ -26,7 +26,7 @@ namespace vxtwitterbot.Functions
             }
         }
 
-        public static async void RedditFunc (MessageCreateEventArgs e)
+        public static async Task RedditFunc (MessageCreatedEventArgs e)
         {
             string message = e.Message.Content;
 
@@ -37,14 +37,12 @@ namespace vxtwitterbot.Functions
 
                 output = Links.CheckIfSpoilerTag(output, message);
 
-                if (filteredMessage != "invalid")
-                {
-                    await e.Message.RespondAsync(output);
-                }
+                await e.Message.RespondAsync(output);
+                
             }
         }
 
-        public static async void TiktokFunc (MessageCreateEventArgs e)
+        public static async Task TiktokFunc (MessageCreatedEventArgs e)
         {
             string message = e.Message.Content;
 
@@ -59,7 +57,7 @@ namespace vxtwitterbot.Functions
             }
         }
 
-        public static async void PixivFunc (MessageCreateEventArgs e)
+        public static async Task PixivFunc (MessageCreatedEventArgs e)
         {
             string message = e.Message.Content;
 
