@@ -16,6 +16,19 @@ app.MapGet("/tweet", async (string url) =>
 
 });
 
+app.MapGet("/oembed", (string authorName, string screenName, string avatarUrl) =>
+{
+    var oembed = new
+    {
+        author_name = $"{authorName} (@{screenName})",
+        author_url = $"https://x.com/{screenName}",
+        provider_name = "Bongo",
+        provider_url = "",
+        thumbnail_url = avatarUrl,
+        type = "link",
+        version = "1.0"
+    };
+});
 
 
 app.Run();

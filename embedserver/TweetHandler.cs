@@ -69,7 +69,10 @@ namespace embedserver
                             <meta property="og:video:type" content="video/mp4" />
                             <meta property="og:site_name" content="x.com" />
                             <meta property="og:type" content="video.other" />
-                            <meta property="og:video:secure_url" content={"videoUrl"}" />
+                            <meta property="og:video:secure_url" content="{videoUrl}" />
+                            <link rel="alternate" type="application/json+oembed" 
+                                href="https://localhost:5031/oembed?authorName={authorName}&screenName={screenName}&avatarUrl={avatarUrl}" 
+                                title="{authorName}" />
                         </head>
                     </html>
                 """;
