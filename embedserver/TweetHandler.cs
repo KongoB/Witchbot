@@ -5,19 +5,8 @@ namespace embedserver
 
     public class TweetHandler
     {
-        public static async Task<IResult> HandleAsync(string url, HttpClient httpClient)
+        public static async Task<IResult> HandleAsync(string username, string tweetId, HttpClient httpClient)
         {
-            var match = System.Text.RegularExpressions.Regex.Match(
-            url, @"(?:x|twitter)\.com/([^/]+)/status/(\d+)"
-        );
-
-            if (!match.Success)
-            {
-                return Results.BadRequest("Invalid url");
-            }
-
-            string username = match.Groups[1].Value;
-            string tweetId = match.Groups[2].Value;
 
             string apiUrl = $"https://api.fxtwitter.com/{username}/status/{tweetId}";
             var response = await httpClient.GetAsync(apiUrl);

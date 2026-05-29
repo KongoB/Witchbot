@@ -94,19 +94,6 @@ namespace vxtwitterbot.Functions
             return xPixivLink;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
         public static bool CheckIfLinkHasBrackets(string message)
         {
             if (message.Contains("<https://"))
