@@ -61,29 +61,29 @@ namespace vxtwitterbot.Functions
             return links.ToString();
         }
 
-        public static string RedditLink(string link)
-        {
+        // public static string RedditLink(string link)
+        // {
 
-            string xRedditLink = link.Replace("reddit.com", "rxddit.com");
+        //     string xRedditLink = link.Replace("reddit.com", "rxddit.com");
 
-            xRedditLink += ("\nDue to limitations with Reddit, videos might be without audio.");
+        //     xRedditLink += ("\nDue to limitations with Reddit, videos might be without audio.");
 
-            return xRedditLink;
-        }
+        //     return xRedditLink;
+        // }
 
-        public static string TiktokLink(string link)
-        {
-            string xTwitterLink = link.Replace("tiktok.com", "tiktxk.com");
+        // public static string TiktokLink(string link)
+        // {
+        //     string xTwitterLink = link.Replace("tiktok.com", "tiktxk.com");
 
-            return xTwitterLink;
-        }
+        //     return xTwitterLink;
+        // }
 
-        public static string PixivLink(string link)
-        {
-            string xPixivLink = link.Replace("pixiv.net", "phixiv.net");
+        // public static string PixivLink(string link)
+        // {
+        //     string xPixivLink = link.Replace("pixiv.net", "phixiv.net");
 
-            return xPixivLink;
-        }
+        //     return xPixivLink;
+        // }
 
         public static bool CheckIfLinkHasBrackets(string message)
         {
