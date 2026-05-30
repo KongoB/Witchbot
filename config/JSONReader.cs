@@ -4,44 +4,59 @@ namespace vxtwitterbot.config
 {
     public class JSONReader
     {
-        public string token { get; set; }
-        public string[] FilteredWebsites { get; set; }
-        public string[] IgnoredWebsites { get; set; }
-        public string[] IgnoredPeople { get; set; }
+        public string token { get; set; } = "";
+        public string[] FilteredWebsites { get; set; } = [];
+        public string[] IgnoredWebsites { get; set; } = [];
+        public string[] IgnoredPeople { get; set; } = [];
 
 
         public async Task ReadJSON()
         {
             using (StreamReader sr = new StreamReader("config/websites.json"))
             {
-                string json = await sr.ReadToEndAsync();
-                JsonStructure data = JsonConvert.DeserializeObject<JsonStructure>(json);
+                JsonStructure data = Deserializer(await sr.ReadToEndAsync(), "websites.json");
 
                 this.FilteredWebsites = data.FilteredWebsites;
                 this.IgnoredWebsites = data.IgnoredWebsites;
             }
             using (StreamReader sr = new StreamReader("config/token.json"))
             {
-                string json = await sr.ReadToEndAsync();
-                JsonStructure data = JsonConvert.DeserializeObject<JsonStructure>(json);
+                JsonStructure data = Deserializer(await sr.ReadToEndAsync(), "token.json");
 
                 this.token = data.token;
             }
             using (StreamReader sr = new StreamReader("config/ignored.json"))
             {
-                string json = await sr.ReadToEndAsync();
-                JsonStructure data = JsonConvert.DeserializeObject<JsonStructure>(json);
+                JsonStructure data = Deserializer(await sr.ReadToEndAsync(), "ignored.json");
 
                 this.IgnoredPeople = data.IgnoredPeople;
             }
         }
+
+        internal static JsonStructure Deserializer(string json, string fileName)
+        {
+            try
+            {
+                JsonStructure? data = JsonConvert.DeserializeObject<JsonStructure>(json) ?? throw new Exception();
+                return data;
+            }
+            catch (JsonException)
+            {
+
+                throw new Exception($"Misconfigured JSON file {fileName} in /config");
+            }
+        }
     }
+
+
+
 
     internal sealed class JsonStructure
     {
-        public string token { get; set; }
-        public string[] FilteredWebsites { get; set; }
-        public string[] IgnoredWebsites { get; set; }
-        public string[] IgnoredPeople { get; set; }
+        public string token { get; set; } = "";
+        public string[] FilteredWebsites { get; set; } = [];
+        public string[] IgnoredWebsites { get; set; } = [];
+        public string[] IgnoredPeople { get; set; } = [];
     }
 }
+
