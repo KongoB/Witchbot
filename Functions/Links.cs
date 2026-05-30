@@ -14,7 +14,7 @@ namespace vxtwitterbot.Functions
 
             if (platform == "twitter")
             {
-                pattern = @"https?://(?:x|twitter).com/([^/]+/status/\d+)";
+                pattern = @"https?://(?:x|twitter).com/([^/]+)/status/(\d+)";
             }
             if (platform == "reddit")
             {
@@ -54,9 +54,9 @@ namespace vxtwitterbot.Functions
             return links.ToString();
         }
 
-        public static string TwitterLink(string link)
+        public static string? TwitterLink(string link)
         {
-            string vxtwitterlink = null;
+            string? vxtwitterlink = null;
 
             if (link.Contains("twitter.com"))
             {
