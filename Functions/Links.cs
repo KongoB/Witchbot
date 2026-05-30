@@ -6,10 +6,8 @@ namespace vxtwitterbot.Functions
 {
     public class Links
     {
-        public static string FilterLinkFromMessage(string message, string platform)
+        public static MatchCollection? FilterLinkFromMessage(string message, string platform)
         {
-            StringBuilder links = new StringBuilder();
-
             string pattern = "invalid";
 
             if (platform == "twitter")
@@ -29,45 +27,38 @@ namespace vxtwitterbot.Functions
                 pattern = @"https?://?(\w+)?\.?pixiv\.net\/(?:[a-z]{2}\/)?artworks\/\d+";
             }
 
+            if (pattern == "invalid")
+            {
+                return null;
+            }
+
             Regex regex = new Regex(pattern);
 
             MatchCollection match = regex.Matches(message);
 
+            return match;
+        }
 
+        public static string TwitterLink(MatchCollection match)
+        {
+            StringBuilder links = new StringBuilder();
 
             bool firstMessage = true;
 
-
-            foreach (var link in match)
+            foreach (Match link in match)
             {
                 if (firstMessage)
                 {
-                    links.Append(link.ToString());
+                    links.Append($"https://www.bongobot.online/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
                     firstMessage = false;
                 }
                 else
                 {
-                    links.Append("\n" + link.ToString());
+                    links.Append($"\nhttps://www.bongobot.online/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
                 }
             }
 
             return links.ToString();
-        }
-
-        public static string? TwitterLink(string link)
-        {
-            string? vxtwitterlink = null;
-
-            if (link.Contains("twitter.com"))
-            {
-                vxtwitterlink = link.Replace("twitter.com", "vxtwitter.com");
-            }
-            if ((link.Contains("x.com")))
-            {
-                vxtwitterlink = link.Replace("x.com", "fixvx.com");
-            }
-
-            return vxtwitterlink;
         }
 
         public static string RedditLink(string link)
