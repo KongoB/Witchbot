@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
 var httpClient = new HttpClient();
-httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (compatible; embedserver/1.0)");
+httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (compatible; Bongobot/1.0)");
 
 app.MapGet("/{username}/status/{tweetId}", async (string username, string tweetId) => 
 {
@@ -28,6 +28,8 @@ app.MapGet("/oembed", (string authorName, string screenName, string avatarUrl) =
         type = "link",
         version = "1.0"
     };
+
+    return Results.Json(oembed);
 });
 
 

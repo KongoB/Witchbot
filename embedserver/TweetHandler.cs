@@ -60,13 +60,13 @@ namespace embedserver
                             <meta property="og:type" content="video.other" />
                             <meta property="og:video:secure_url" content="{videoUrl}" />
                             <link rel="alternate" type="application/json+oembed" 
-                                href="https://localhost:5031/oembed?authorName={authorName}&screenName={screenName}&avatarUrl={avatarUrl}" 
+                                href="https://bongobot.online/oembed?authorName={authorName}&screenName={screenName}&avatarUrl={avatarUrl}" 
                                 title="{authorName}" />
                         </head>
                     </html>
                 """;
+                return Results.Content(html, "text/html");
             }
-
             return Results.Ok();
         }
     }
