@@ -7,12 +7,14 @@ namespace embedserver
     {
         public static async Task<IResult> HandleAsync(string username, string tweetId, HttpClient httpClient)
         {
+            System.Console.WriteLine($"Received request for https://api.fxtwitter.com/{username}/status/{tweetId}");
 
             string apiUrl = $"https://api.fxtwitter.com/{username}/status/{tweetId}";
             var response = await httpClient.GetAsync(apiUrl);
 
             if (!response.IsSuccessStatusCode)
             {
+                System.Console.WriteLine($"Post not found. {response.StatusCode}. URL: {apiUrl}");
                 return Results.NotFound($"Post not found. {response.StatusCode}. URL: {apiUrl}");
             }
 
@@ -22,6 +24,7 @@ namespace embedserver
 
             if (tweetData?.Tweet == null)
             {
+                System.Console.WriteLine("Could not parse post data");
                 return Results.NotFound("Could not parse post data");
             }
 
@@ -31,6 +34,8 @@ namespace embedserver
             //Handle videos
             if (videos != null && videos.Any())
             {
+                System.Console.WriteLine($"Video found, servicing embed for {username}");
+
                 var bestFormat = videos[0].Formats?
                 .Where(f => f.Container == "mp4")
                 .OrderByDescending(f => f.Bitrate)
@@ -67,6 +72,8 @@ namespace embedserver
                 """;
                 return Results.Content(html, "text/html");
             }
+            System.Console.WriteLine($"No video found for {username}");
+            
             return Results.Ok();
         }
     }
