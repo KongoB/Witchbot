@@ -9,11 +9,12 @@ httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (compatible; Bon
 
 app.MapGet("/{username}/status/{tweetId}", async (string username, string tweetId) => 
 {
-
     return await TweetHandler.HandleAsync(username, tweetId, httpClient);
+});
 
-    
-
+app.MapGet("/check/{username}/{tweetId}", async (string username, string tweetId) =>
+{
+    return await TweetHandler.HasVideo(username, tweetId, httpClient);
 });
 
 app.MapGet("/oembed", (string authorName, string screenName, string avatarUrl) =>
@@ -31,6 +32,8 @@ app.MapGet("/oembed", (string authorName, string screenName, string avatarUrl) =
 
     return Results.Json(oembed);
 });
+
+
 
 
 app.Run();

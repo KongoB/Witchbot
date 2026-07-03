@@ -7,34 +7,20 @@ namespace embedserver
     {
         public static async Task<IResult> HandleAsync(string username, string tweetId, HttpClient httpClient)
         {
-            System.Console.WriteLine($"Received request for https://api.fxtwitter.com/{username}/status/{tweetId}");
+            FxTwitterResponse? tweetData = await FetchTweetAsync(username, tweetId, httpClient);
 
-            string apiUrl = $"https://api.fxtwitter.com/{username}/status/{tweetId}";
-            var response = await httpClient.GetAsync(apiUrl);
-
-            if (!response.IsSuccessStatusCode)
+            if (tweetData == null)
             {
-                System.Console.WriteLine($"Post not found. {response.StatusCode}. URL: {apiUrl}");
-                return Results.NotFound($"Post not found. {response.StatusCode}. URL: {apiUrl}");
+                System.Console.WriteLine("Twitter post data not found");
+                return Results.NotFound("not found");
             }
 
-
-            string json = await response.Content.ReadAsStringAsync();
-            var tweetData = JsonSerializer.Deserialize<FxTwitterResponse>(json);
-
-            if (tweetData?.Tweet == null)
-            {
-                System.Console.WriteLine("Could not parse post data");
-                return Results.NotFound("Could not parse post data");
-            }
-
-            var videos = tweetData.Tweet.Media?.Videos;
-
+            var videos = tweetData?.Tweet?.Media?.Videos;
 
             //Handle videos
             if (videos != null && videos.Any())
             {
-                System.Console.WriteLine($"Video found, servicing embed for {username}");
+                System.Console.WriteLine($"Video found, servicing embed for {username} and {tweetId}");
 
                 var bestFormat = videos[0].Formats?
                 .Where(f => f.Container == "mp4")
@@ -44,10 +30,10 @@ namespace embedserver
                 string videoUrl = bestFormat?.Url ?? videos[0].Url!;
 
                 string thumbnailUrl = videos[0].ThumbnailUrl ?? "";
-                string authorName = tweetData.Tweet.Author?.Name ?? "Unknown user";
-                string tweetText = tweetData.Tweet.Text ?? "";
-                string avatarUrl = tweetData.Tweet.Author?.AvatarUrl ?? "";
-                string screenName = tweetData.Tweet.Author?.ScreenName ?? "";
+                string authorName = tweetData?.Tweet?.Author?.Name ?? "Unknown user";
+                string tweetText = tweetData?.Tweet?.Text ?? "";
+                string avatarUrl = tweetData?.Tweet?.Author?.AvatarUrl ?? "";
+                string screenName = tweetData?.Tweet?.Author?.ScreenName ?? "";
                 int width = videos[0].Width;
                 int height = videos[0].Height;
 
@@ -72,10 +58,52 @@ namespace embedserver
                 """;
                 return Results.Content(html, "text/html");
             }
-            System.Console.WriteLine($"No video found for {username}");
-            
+            System.Console.WriteLine($"No video found for {username} and {tweetId}");
+
             return Results.Ok();
         }
-    }
 
+        private static async Task<FxTwitterResponse?> FetchTweetAsync(string username, string tweetId, HttpClient httpClient)
+        {
+            Console.WriteLine($"Received request for https://api.fxtwitter.com/{username}/status/{tweetId}");
+
+            string apiUrl = $"https://api.fxtwitter.com/{username}/status/{tweetId}";
+            var response = await httpClient.GetAsync(apiUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Post not found. {response.StatusCode}. URL: {apiUrl}");
+                return null;
+            }
+             
+
+            string json = await response.Content.ReadAsStringAsync();
+            var tweetData = JsonSerializer.Deserialize<FxTwitterResponse>(json);
+
+            if (tweetData?.Tweet == null)
+            {
+                Console.WriteLine("Could not parse post data");
+                return null;
+            }
+
+            return tweetData;
+        }
+
+        public static async Task<IResult> HasVideo(string username, string tweetId, HttpClient httpClient)
+        {
+            FxTwitterResponse? tweetData = await FetchTweetAsync(username, tweetId, httpClient);
+
+            if (tweetData == null)
+            {
+                System.Console.WriteLine("Twitter post data not found");
+                return Results.Json(new {has_video = false});
+            }
+
+            var videos = tweetData.Tweet?.Media?.Videos;
+
+
+            var hasVideo = videos != null && videos.Any();
+            return Results.Json(new {has_video = hasVideo});
+        }
+    }
 }
