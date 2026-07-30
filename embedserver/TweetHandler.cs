@@ -1,13 +1,14 @@
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace embedserver
 {
 
     public class TweetHandler
     {
-        public static async Task<IResult> HandleAsync(string username, string tweetId, HttpClient httpClient)
+        public static async Task<IResult> HandleAsync(string username, string tweetId, HttpClient httpClient, MemoryCache cache)
         {
-            FxTwitterResponse? tweetData = await FetchTweetAsync(username, tweetId, httpClient);
+            FxTwitterResponse? tweetData = await FetchTweetAsync(username, tweetId, httpClient, cache);
 
             if (tweetData == null)
             {
@@ -15,7 +16,7 @@ namespace embedserver
                 return Results.NotFound("not found");
             }
 
-            var videos = tweetData?.Tweet?.Media?.Videos;
+            var videos = tweetData.Tweet?.Media?.Videos;
 
             //Handle videos
             if (videos != null && videos.Any())
@@ -30,10 +31,10 @@ namespace embedserver
                 string videoUrl = bestFormat?.Url ?? videos[0].Url!;
 
                 string thumbnailUrl = videos[0].ThumbnailUrl ?? "";
-                string authorName = tweetData?.Tweet?.Author?.Name ?? "Unknown user";
-                string tweetText = tweetData?.Tweet?.Text ?? "";
-                string avatarUrl = tweetData?.Tweet?.Author?.AvatarUrl ?? "";
-                string screenName = tweetData?.Tweet?.Author?.ScreenName ?? "";
+                string authorName = tweetData.Tweet?.Author?.Name ?? "Unknown user";
+                string tweetText = tweetData.Tweet?.Text ?? "";
+                string avatarUrl = tweetData.Tweet?.Author?.AvatarUrl ?? "";
+                string screenName = tweetData.Tweet?.Author?.ScreenName ?? "";
                 int width = videos[0].Width;
                 int height = videos[0].Height;
 
@@ -63,11 +64,18 @@ namespace embedserver
             return Results.Ok();
         }
 
-        private static async Task<FxTwitterResponse?> FetchTweetAsync(string username, string tweetId, HttpClient httpClient)
+        private static async Task<FxTwitterResponse?> FetchTweetAsync(string username, string tweetId, HttpClient httpClient, MemoryCache cache)
         {
-            Console.WriteLine($"Received request for https://api.fxtwitter.com/{username}/status/{tweetId}");
+            Console.WriteLine($"Request for tweet {tweetId}");
+
+            if (cache.TryGetValue(tweetId, out FxTwitterResponse? cached))
+            {
+                System.Console.WriteLine($"Cache hit for {tweetId}");
+                return cached;
+            }
 
             string apiUrl = $"https://api.fxtwitter.com/{username}/status/{tweetId}";
+            Console.WriteLine($"Received request for {apiUrl}");
             var response = await httpClient.GetAsync(apiUrl);
 
             if (!response.IsSuccessStatusCode)
@@ -86,12 +94,15 @@ namespace embedserver
                 return null;
             }
 
+            cache.Set(tweetId, tweetData, TimeSpan.FromMinutes(5));
+            System.Console.WriteLine($"Cached {tweetId}");
+
             return tweetData;
         }
 
-        public static async Task<IResult> HasVideo(string username, string tweetId, HttpClient httpClient)
+        public static async Task<IResult> HasVideo(string username, string tweetId, HttpClient httpClient, MemoryCache cache)
         {
-            FxTwitterResponse? tweetData = await FetchTweetAsync(username, tweetId, httpClient);
+            FxTwitterResponse? tweetData = await FetchTweetAsync(username, tweetId, httpClient, cache);
 
             if (tweetData == null)
             {
