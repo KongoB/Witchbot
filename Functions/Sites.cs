@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using DSharpPlus.EventArgs;
 
 namespace vxtwitterbot.Functions
@@ -6,7 +7,7 @@ namespace vxtwitterbot.Functions
     public class Sites
     {
 
-        public static string? TwitterFunc(string message)
+        public static async Task<string?> TwitterFunc(string message, HttpClient httpClient)
         {
 
             if (message.Contains("twitter") || message.Contains("x.com"))
@@ -19,7 +20,12 @@ namespace vxtwitterbot.Functions
                     return null;
                 }
 
-                string? output = Links.TwitterLink(filteredLinks);
+                string? output = await Links.ProcessTwitterLinks(filteredLinks, httpClient);
+
+                if (string.IsNullOrEmpty(output))
+                {
+                    return null;
+                }
 
                 output = Links.CheckIfSpoilerTag(output, message);
 
@@ -28,6 +34,8 @@ namespace vxtwitterbot.Functions
             }
             return null;
         }
+
+        
 
         // public static async Task RedditFunc (MessageCreatedEventArgs e, string message)
         // {

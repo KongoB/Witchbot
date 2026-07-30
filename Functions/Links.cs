@@ -1,6 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 using System.Text;
-using System.Linq;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+
 
 namespace vxtwitterbot.Functions
 {
@@ -39,27 +41,57 @@ namespace vxtwitterbot.Functions
             return match;
         }
 
-        public static string TwitterLink(MatchCollection match)
+        public static async Task<string?> ProcessTwitterLinks(MatchCollection match, HttpClient httpClient)
         {
+
             StringBuilder links = new StringBuilder();
 
             bool firstMessage = true;
+            bool hasVideo = false;
 
             foreach (Match link in match)
             {
-                if (firstMessage)
+                var response = await httpClient.GetAsync($"http://embedserver:8080/check/{link.Groups[1].Value}/{link.Groups[2].Value}");
+                string json = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<CheckResponseForTweetVideo>(json);
+
+                bool linkHasVideo = result?.HasVideo ?? false;
+                hasVideo = hasVideo || linkHasVideo;
+
+                if (linkHasVideo)
                 {
-                    links.Append($"https://www.bongobot.online/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
-                    firstMessage = false;
+                    if (firstMessage)
+                    {
+                        links.Append($"https://www.bongobot.online/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
+                        firstMessage = false;
+                    }
+                    else
+                    {
+                        links.Append($"\nhttps://www.bongobot.online/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
+                    }
                 }
                 else
                 {
-                    links.Append($"\nhttps://www.bongobot.online/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
+                    if (firstMessage)
+                    {
+                        links.Append(link.Groups[0].Value);
+                        firstMessage = false;
+                    }
+                    else
+                    {
+                        links.Append($"\n{link.Groups[0].Value}");
+                    }
                 }
             }
+            if (hasVideo)
+            {
+                return links.ToString();
+            }
 
-            return links.ToString();
+            return null;
+
         }
+
 
         // public static string RedditLink(string link)
         // {
@@ -73,9 +105,9 @@ namespace vxtwitterbot.Functions
 
         // public static string TiktokLink(string link)
         // {
-        //     string xTwitterLink = link.Replace("tiktok.com", "tiktxk.com");
+        //     string xProcessTwitterLinks = link.Replace("tiktok.com", "tiktxk.com");
 
-        //     return xTwitterLink;
+        //     return xProcessTwitterLinks;
         // }
 
         // public static string PixivLink(string link)
@@ -113,4 +145,12 @@ namespace vxtwitterbot.Functions
         }
 
     }
+
+    public class CheckResponseForTweetVideo
+    {
+        [JsonPropertyName("has_video")]
+        public bool HasVideo { get; set; }
+    }
+
+
 }

@@ -1,9 +1,6 @@
 ﻿using DSharpPlus;
-using DSharpPlus.Entities;
 using vxtwitterbot.config;
 using vxtwitterbot.Functions;
-using DSharpPlus.Commands;
-using DSharpPlus.EventArgs;
 
 
 namespace vxTwitterBot
@@ -11,10 +8,13 @@ namespace vxTwitterBot
     class Program
     {        
         private static JSONReader jsonReader = new JSONReader();
+        
 
         static async Task Main(string[] args)
         {
             await jsonReader.ReadJSON();
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (compatible; Bongobot/1.0)");
             
             //SlashCommands.RegisterCommands<vxtwitterbot.Functions.SlashCommands>(588533489146658816);
             
@@ -25,7 +25,7 @@ namespace vxTwitterBot
 
             builder.ConfigureEventHandlers (e =>
             {
-                e.HandleMessageCreated((client, args) => Services.LinkMessageFix(client, args, jsonReader));
+                e.HandleMessageCreated((client, args) => Services.LinkMessageFix(client, args, jsonReader, httpClient));
                 e.HandleMessageCreated(Services.Utility);
                 e.HandleMessageCreated(Services.DeleteMessage);
             });

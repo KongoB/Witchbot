@@ -9,7 +9,7 @@ namespace vxtwitterbot.Functions
     public class Services
     {
 
-        public static async Task LinkMessageFix(DiscordClient sender, MessageCreatedEventArgs e, JSONReader jsonReader)
+        public static async Task LinkMessageFix(DiscordClient sender, MessageCreatedEventArgs e, JSONReader jsonReader, HttpClient httpClient)
         {
 
             string message = e.Message.Content;
@@ -22,7 +22,7 @@ namespace vxtwitterbot.Functions
 
             {
 
-                await Respond(e, Sites.TwitterFunc(message));
+                await Respond(e,await Sites.TwitterFunc(message, httpClient));
                 // await Sites.RedditFunc(e, messageContent);
                 // await Sites.PixivFunc(e, messageContent);
                 //Sites.TiktokFunc(e);
