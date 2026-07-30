@@ -38,6 +38,10 @@ namespace embedserver
                 int width = videos[0].Width;
                 int height = videos[0].Height;
 
+                string authorNameEncoded = Uri.EscapeDataString(authorName);
+                string screenNameEncoded = Uri.EscapeDataString(screenName);
+                string avatarUrlEncoded = Uri.EscapeDataString(avatarUrl);
+                
                 string html = $"""
                     <html>
                         <head>
@@ -52,7 +56,7 @@ namespace embedserver
                             <meta property="og:type" content="video.other" />
                             <meta property="og:video:secure_url" content="{videoUrl}" />
                             <link rel="alternate" type="application/json+oembed" 
-                                href="https://bongobot.online/oembed?authorName={authorName}&screenName={screenName}&avatarUrl={avatarUrl}" 
+                                href="https://bongobot.online/oembed?authorName={authorNameEncoded}&screenName={screenNameEncoded}&avatarUrl={avatarUrlEncoded}" 
                                 title="{authorName}" />
                         </head>
                     </html>
