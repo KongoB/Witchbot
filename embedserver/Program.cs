@@ -26,7 +26,6 @@ app.MapGet("/oembed", (string authorName, string screenName, string avatarUrl) =
     {
         author_name = $"{authorName} (@{screenName})",
         author_url = $"https://x.com/{screenName}",
-        provider_name = "Bongo",
         provider_url = "",
         thumbnail_url = avatarUrl,
         type = "link",

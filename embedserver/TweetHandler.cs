@@ -58,6 +58,7 @@ namespace embedserver
                             <link rel="alternate" type="application/json+oembed" 
                                 href="https://bongobot.online/oembed?authorName={authorNameEncoded}&screenName={screenNameEncoded}&avatarUrl={avatarUrlEncoded}" 
                                 title="{authorName}" />
+                            <link rel="apple-touch-icon" href="{avatarUrl}"/>
                         </head>
                     </html>
                 """;
