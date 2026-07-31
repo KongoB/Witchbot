@@ -45,6 +45,7 @@ namespace embedserver
                 string html = $"""
                     <html>
                         <head>
+                            <meta name="twitter:card" content="player" />
                             <meta property="og:video" content="{videoUrl}" />
                             <meta property="og:title" content="{authorName}" />
                             <meta property="og:description" content="{tweetText}" />
