@@ -46,6 +46,12 @@ namespace embedserver
                     <html>
                         <head>
                             <meta name="twitter:card" content="player" />
+                            <meta name="twitter:card" content="player" />
+                            <meta name="twitter:image" content="{thumbnail}" />
+                            <meta name="twitter:player:width" content="{width}" />
+                            <meta name="twitter:player:height" content="{height}" />
+                            <meta name="twitter:player:stream" content="{videoUrl}" />
+                            <meta name="twitter:player:stream:content_type" content="video/mp4" />
                             <meta property="og:video" content="{videoUrl}" />
                             <meta property="og:title" content="{authorName}" />
                             <meta property="og:description" content="{tweetText}" />
