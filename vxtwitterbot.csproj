@@ -9,10 +9,14 @@
 
   <ItemGroup>
     <None Remove="config\websites.json" />
+    <None Remove="config\settings.json" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="config\websites.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

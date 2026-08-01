@@ -20,6 +20,22 @@ namespace embedserver
 
         [JsonPropertyName("media")]
         public Media? Media {get; set; }
+
+        [JsonPropertyName("replies")]
+        public int Replies { get; set; }
+
+        [JsonPropertyName("retweets")]
+        public int Retweets { get; set; }
+
+        [JsonPropertyName("likes")]
+        public int Likes { get; set; }
+
+        [JsonPropertyName("views")]
+        public int Views { get; set; }
+        [JsonPropertyName("created_timestamp")]
+        public long CreatedTimestamp { get; set; }
+        [JsonPropertyName("quote")]
+        public Tweet? Quote { get; set; }
     }
 
     public class Author
@@ -56,6 +72,8 @@ namespace embedserver
 
         [JsonPropertyName("formats")]
         public List<VideoFormat>? Formats { get; set; }
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
     }
 
     public class VideoFormat

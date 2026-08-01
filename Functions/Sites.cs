@@ -7,7 +7,7 @@ namespace vxtwitterbot.Functions
     public class Sites
     {
 
-        public static async Task<string?> TwitterFunc(string message, HttpClient httpClient)
+        public static async Task<string?> TwitterFunc(string message, HttpClient httpClient, string baseUrl)
         {
 
             if (message.Contains("twitter") || message.Contains("x.com"))
@@ -20,7 +20,7 @@ namespace vxtwitterbot.Functions
                     return null;
                 }
 
-                string? output = await Links.ProcessTwitterLinks(filteredLinks, httpClient);
+                string? output = await Links.ProcessTwitterLinks(filteredLinks, httpClient, baseUrl);
 
                 if (string.IsNullOrEmpty(output))
                 {

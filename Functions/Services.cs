@@ -22,7 +22,7 @@ namespace vxtwitterbot.Functions
 
             {
 
-                await Respond(e,await Sites.TwitterFunc(message, httpClient));
+                await Respond(e,await Sites.TwitterFunc(message, httpClient, jsonReader.BaseUrl));
                 // await Sites.RedditFunc(e, messageContent);
                 // await Sites.PixivFunc(e, messageContent);
                 //Sites.TiktokFunc(e);

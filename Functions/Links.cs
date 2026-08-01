@@ -41,7 +41,7 @@ namespace vxtwitterbot.Functions
             return match;
         }
 
-        public static async Task<string?> ProcessTwitterLinks(MatchCollection match, HttpClient httpClient)
+        public static async Task<string?> ProcessTwitterLinks(MatchCollection match, HttpClient httpClient, string baseUrl)
         {
 
             StringBuilder links = new StringBuilder();
@@ -62,12 +62,12 @@ namespace vxtwitterbot.Functions
                 {
                     if (firstMessage)
                     {
-                        links.Append($"https://www.bongobot.online/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
+                        links.Append($"{baseUrl}/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
                         firstMessage = false;
                     }
                     else
                     {
-                        links.Append($"\nhttps://www.bongobot.online/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
+                        links.Append($"\n{baseUrl}/{link.Groups[1].Value}/status/{link.Groups[2].Value}");
                     }
                 }
                 else

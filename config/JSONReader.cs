@@ -8,6 +8,7 @@ namespace vxtwitterbot.config
         public string[] FilteredWebsites { get; set; } = [];
         public string[] IgnoredWebsites { get; set; } = [];
         public string[] IgnoredPeople { get; set; } = [];
+        public string BaseUrl { get; set; } = "https://witchbot.net";
 
 
         public async Task ReadJSON()
@@ -30,6 +31,12 @@ namespace vxtwitterbot.config
                 JsonStructure data = Deserializer(await sr.ReadToEndAsync(), "ignored.json");
 
                 this.IgnoredPeople = data.IgnoredPeople;
+            }
+            using (StreamReader sr = new StreamReader("config/settings.json"))
+            {
+                JsonStructure data = Deserializer(await sr.ReadToEndAsync(), "settings.json");
+
+                this.BaseUrl = data.BaseUrl;
             }
         }
 
@@ -57,6 +64,7 @@ namespace vxtwitterbot.config
         public string[] FilteredWebsites { get; set; } = [];
         public string[] IgnoredWebsites { get; set; } = [];
         public string[] IgnoredPeople { get; set; } = [];
+        public string BaseUrl { get; set; } = "";
     }
 }
 
