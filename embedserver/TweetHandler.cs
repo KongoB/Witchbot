@@ -89,7 +89,7 @@ namespace embedserver
                                 <meta property="og:video:type" content="video/mp4" />
                                 <meta property="og:title" content="{ogTitleH}" />
                                 <meta property="og:description" content="{tweetTextH}" />
-                                <meta property="og:site_name" content="Witch" />
+                                <meta property="og:site_name" content="Witchbot" />
                                 <meta property="og:image" content="{thumbnailUrlH}" />
                                 <meta property="og:url" content="https://x.com/{screenName}/status/{tweetId}"/>
                                 <link rel="apple-touch-icon" href="{avatarUrlH}" />
