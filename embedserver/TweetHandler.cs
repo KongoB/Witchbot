@@ -92,6 +92,7 @@ namespace embedserver
                                 <meta property="og:site_name" content="Witchbot" />
                                 <meta property="og:image" content="{thumbnailUrlH}" />
                                 <meta property="og:url" content="https://x.com/{screenName}/status/{tweetId}"/>
+                                <meta http-equiv="refresh" content="0;url=https://x.com/{screenName}/status/{tweetId}" />
                                 <link rel="apple-touch-icon" href="{avatarUrlH}" />
                                 <link rel="canonical" href="https://x.com/{screenName}/status/{tweetId}"/>
                                 <link rel="alternate" type="application/json+oembed" href="{oembedUrlH}" title="{authorNameH}" />
