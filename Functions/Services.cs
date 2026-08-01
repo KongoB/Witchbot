@@ -22,17 +22,23 @@ namespace vxtwitterbot.Functions
 
             {
 
-                await Respond(e,await Sites.TwitterFunc(message, httpClient, jsonReader.BaseUrl));
+                string? output = await Sites.TwitterFunc(message, httpClient, jsonReader.BaseUrl);
+
+                if (!string.IsNullOrEmpty(output))
+                {
+                    await Respond(e, output);
+                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                    await Task.Delay(2000);
+                    if (e.Message.Embeds.Any())
+                    {
+                        await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                    }
+                }
                 // await Sites.RedditFunc(e, messageContent);
                 // await Sites.PixivFunc(e, messageContent);
                 //Sites.TiktokFunc(e);
 
-                await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
-                await Task.Delay(2000);
-                if (e.Message.Embeds.Any())
-                {
-                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
-                }
+
             }
         }
 
