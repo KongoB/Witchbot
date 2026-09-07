@@ -51,7 +51,7 @@ namespace vxtwitterbot.Functions
 
             foreach (Match link in match)
             {
-                var response = await httpClient.GetAsync($"http://embedserver:8080/check/{link.Groups[1].Value}/{link.Groups[2].Value}");
+                var response = await httpClient.GetAsync($"http://localhost:5031/check/{link.Groups[1].Value}/{link.Groups[2].Value}");
                 string json = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<CheckResponseForTweetVideo>(json);
 

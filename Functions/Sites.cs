@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using DSharpPlus.EventArgs;
+﻿using System.Text.RegularExpressions;
 
 namespace vxtwitterbot.Functions
 {
@@ -28,6 +26,7 @@ namespace vxtwitterbot.Functions
                 }
 
                 output = Links.CheckIfSpoilerTag(output, message);
+                
 
                 return output;
 

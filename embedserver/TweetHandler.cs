@@ -77,6 +77,8 @@ namespace embedserver
                     <html>
                         <head>
                                 <meta property="twitter:card" content="player" />
+                                <meta property="theme-color" content="#0011ff" />
+                                <meta name="theme-color" content="#0011ff" />
                                 <meta property="twitter:player:width" content="{width}" />
                                 <meta property="twitter:player:height" content="{height}" />
                                 <meta property="twitter:player:stream" content="{videoUrlH}" />
@@ -89,7 +91,7 @@ namespace embedserver
                                 <meta property="og:video:type" content="video/mp4" />
                                 <meta property="og:title" content="{ogTitleH}" />
                                 <meta property="og:description" content="{tweetTextH}" />
-                                <meta property="og:site_name" content="Witchbot" />
+                                <meta property="og:site_name" content="Witchbot - x.com" />
                                 <meta property="og:image" content="{thumbnailUrlH}" />
                                 <meta property="og:url" content="https://x.com/{screenName}/status/{tweetId}"/>
                                 <meta http-equiv="refresh" content="0;url=https://x.com/{screenName}/status/{tweetId}" />
@@ -97,7 +99,7 @@ namespace embedserver
                                 <link rel="canonical" href="https://x.com/{screenName}/status/{tweetId}"/>
                                 <link rel="alternate" type="application/json+oembed" href="{oembedUrlH}" title="{authorNameH}" />
                                 <link rel="alternate" type="application/activity+json" href="{baseUrl}/users/{screenName}/statuses/{tweetId}" />
-                                <link rel="icon" sizes="32x32" type="image/png" href="{baseUrl}/icon32.png" />
+                                <link rel="icon" sizes="32x32" type="image/png" href="{baseUrl}/icon32twitter.png" />
                         </head>
                     </html>
                 """;
@@ -327,35 +329,34 @@ namespace embedserver
 
         private static async Task<bool> TranscodeAsync(string tweetId, HttpClient httpClient, MemoryCache cache, string dir, string webpPath)
         {
-            var tweetData = await FetchTweetAsync("", tweetId, httpClient, cache);
-            var video = tweetData?.Tweet?.Media?.Videos?.FirstOrDefault();
-            if (video?.Url == null) return false;
+            var tweetData = await FetchTweetAsync("", tweetId, httpClient, cache); 
+            var video = tweetData?.Tweet?.Media?.Videos?.FirstOrDefault(); 
+            if (video?.Url == null) return false; 
 
             Console.WriteLine($"Transcoding gif for {tweetId}");
 
-            string mp4Path = Path.Combine(dir, $"{tweetId}.mp4");
-            string tempPath = Path.Combine(dir, $"{tweetId}.tmp.webp");   // <- work-in-progress name
+            string mp4Path = Path.Combine(dir, $"{tweetId}.mp4"); 
+            string tempPath = Path.Combine(dir, $"{tweetId}.tmp.webp"); 
 
-            var bytes = await httpClient.GetByteArrayAsync(video.Url);
-            await File.WriteAllBytesAsync(mp4Path, bytes);
+            var bytes = await httpClient.GetByteArrayAsync(video.Url); 
+            await File.WriteAllBytesAsync(mp4Path, bytes); 
 
-            var psi = new System.Diagnostics.ProcessStartInfo
+            var psi = new System.Diagnostics.ProcessStartInfo 
             {
                 FileName = "ffmpeg",
-                Arguments = $"-y -i \"{mp4Path}\" -c:v libwebp -q:v 75 -loop 0 \"{tempPath}\"",
-                RedirectStandardError = true
+                Arguments = $"-y -loglevel error -i \"{mp4Path}\" -c:v libwebp -q:v 75 -loop 0 \"{tempPath}\""
             };
-            using var proc = System.Diagnostics.Process.Start(psi)!;
-            await proc.WaitForExitAsync();
-            File.Delete(mp4Path);
+            using var proc = System.Diagnostics.Process.Start(psi)!; 
+            await proc.WaitForExitAsync(); 
+            File.Delete(mp4Path); 
 
-            if (proc.ExitCode != 0 || !File.Exists(tempPath))
+            if (proc.ExitCode != 0 || !File.Exists(tempPath)) 
             {
                 Console.WriteLine($"ffmpeg failed for {tweetId}");
                 return false;
             }
 
-            File.Move(tempPath, webpPath, overwrite: true);   // <- the atomic "it's ready" moment
+            File.Move(tempPath, webpPath, overwrite: true); 
             Console.WriteLine($"Transcode complete for {tweetId}");
             return true;
         }

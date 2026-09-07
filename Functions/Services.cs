@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -26,7 +27,14 @@ namespace vxtwitterbot.Functions
 
                 if (!string.IsNullOrEmpty(output))
                 {
-                    await Respond(e, output);
+                    if (string.IsNullOrEmpty(output)) return;
+
+                    var builder = new DiscordMessageBuilder()
+                        .WithContent($"{output}\nPosted by {e.Message.Author?.Mention}")
+                        .WithAllowedMentions(Mentions.None);
+
+                    await Respond(e, builder);
+
                     await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
                     await Task.Delay(2000);
                     if (e.Message.Embeds.Any())
@@ -42,14 +50,9 @@ namespace vxtwitterbot.Functions
             }
         }
 
-        private static async Task Respond(MessageCreatedEventArgs e, string? message)
+        private static async Task Respond(MessageCreatedEventArgs e, DiscordMessageBuilder message)
         {
-            if (string.IsNullOrEmpty(message))
-            {
-                return;
-            }
             await e.Message.RespondAsync(message);
-
         }
 
         public static async Task Utility(DiscordClient sender, MessageCreatedEventArgs e)
@@ -64,39 +67,33 @@ namespace vxtwitterbot.Functions
             {
                 if (e.Message.Content.Contains("help"))
                 {
-                    await e.Message.RespondAsync("You can include \"nofix\" in your message to make me ignore a message");
+                    await e.Message.RespondAsync("You can include \"nofix\" in your message to make me ignore a message\nReply to a message I posted with the word \"delete\" to delete my message (it has to be a reply to your message).");
                 }
                 else
                 {
                     await e.Message.RespondAsync("Ping!");
                 }
             }
-
         }
 
         public static async Task DeleteMessage(DiscordClient sender, MessageCreatedEventArgs e)
         {
 
-            if (e.Message.Content.ToLower().Contains("delete") && e.Message.Reference != null)
+            if (e.Message.Content.Trim().ToLower() == "delete" 
+                && e.Message.Reference != null)
             {
-                if (e.Message.ReferencedMessage?.Reference == null)
+                var frickMyDisgustingChungusLife = await e.Channel.GetMessageAsync(e.Message.Reference.Message.Id);
+
+                if (frickMyDisgustingChungusLife is null) return;
+                if (frickMyDisgustingChungusLife.Author is null) return;
+
+                if(frickMyDisgustingChungusLife.Author.Id == sender.CurrentUser.Id 
+                    && frickMyDisgustingChungusLife.MentionedUsers.Any(u => u.Id == e.Message.Author?.Id))
                 {
-                    return;
-                }
-
-                var message = await e.Channel.GetMessageAsync(e.Message.ReferencedMessage.Reference.Message.Id);
-
-
-                if (e.Message.ReferencedMessage.Author == sender.CurrentUser &&
-                    message.Author == e.Author)
-                {
-                    await e.Message.ReferencedMessage.DeleteAsync();
+                    await frickMyDisgustingChungusLife.DeleteAsync();
                 }
             }
-
-
         }
-
 
     }
 }
