@@ -53,6 +53,7 @@ namespace embedserver
     public class RedditClient
     {
         private static readonly Regex IdPattern = new("^[0-9a-z]{1,12}$", RegexOptions.Compiled);
+        private static readonly Regex SharePartPattern = new("^[0-9A-Za-z_]{1,40}$", RegexOptions.Compiled);
 
         private readonly HttpClient _http;
         private readonly MemoryCache _cache;
@@ -111,6 +112,40 @@ namespace embedserver
             // Failures are cached too (briefly) so a broken link isn't retried on every request.
             _cache.Set(key, post, post != null ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(60));
             return post;
+        }
+
+        /// <summary>
+        /// Share links (reddit.com/r/sub/s/CODE) hide the post ID behind a redirect.
+        /// We request the link, let HttpClient follow the redirect, and read the ID from where we ended up.
+        /// Returns null when it can't be resolved (never throws).
+        /// </summary>
+        public async Task<string?> ResolveShareLinkAsync(string subreddit, string code)
+        {
+            if (!IsConfigured || !SharePartPattern.IsMatch(subreddit) || !SharePartPattern.IsMatch(code)) return null;
+
+            string key = $"reddit:share:{code}";
+            if (_cache.TryGetValue(key, out string? cached)) return cached;
+
+            string? postId = null;
+            try
+            {
+                string url = $"https://www.reddit.com/r/{subreddit}/s/{code}";
+
+                // ResponseHeadersRead: we only care where we landed, so don't download the page itself.
+                using var response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                string finalPath = response.RequestMessage?.RequestUri?.AbsolutePath ?? "";
+
+                Match match = Regex.Match(finalPath, "/comments/([0-9a-z]+)", RegexOptions.IgnoreCase);
+                if (match.Success) postId = match.Groups[1].Value.ToLowerInvariant();
+                else Console.WriteLine($"Reddit: share link {code} ended at {(int)response.StatusCode} {finalPath}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Reddit: share link {code} failed: {e.GetType().Name}: {e.Message}");
+            }
+
+            _cache.Set(key, postId, postId != null ? TimeSpan.FromHours(1) : TimeSpan.FromSeconds(60));
+            return postId;
         }
 
         private async Task<RedditPost?> FetchAsync(string id)

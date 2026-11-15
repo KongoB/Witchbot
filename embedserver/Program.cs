@@ -24,6 +24,7 @@ app.Use(async (context, next) =>
 
 app.MapTwitterRoutes (httpClient, cache, baseUrl);
 app.MapRedditRoutes (reddit, baseUrl);
+app.MapMastodonRoutes (httpClient, cache, reddit, baseUrl);
 
 
 app.Run();
