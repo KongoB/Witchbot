@@ -1,6 +1,6 @@
 {
 	"BaseUrl": "https://witchbot.net",
-	"EmbedServerUrl": "http://embedserver:8080"
+	"EmbedServerUrl": "http://localhost:5031"
 }
 
 

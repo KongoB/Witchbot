@@ -32,7 +32,7 @@ namespace vxtwitterbot.Functions
         // Group 1: the whole path, reused as-is on our own domain.
         // Group 2: post ID (normal links).   Groups 3 + 4: subreddit and code (share links).
         private static readonly Regex LinkPattern = new(
-            @"https?://(?:www\.|new\.|old\.)?reddit\.com(/r/\w+/comments/(\w+)(?:/[^\s?#|<>()]*)?|/r/(\w+)/s/(\w+))",
+            @"https?://(?:www\.|new\.|old\.)?reddit\.com(/(?:r|u|user)/[\w-]+/comments/(\w+)(?:/[^\s?#|<>()]*)?|/r/([\w-]+)/s/(\w+))",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>

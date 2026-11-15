@@ -70,10 +70,17 @@ namespace embedserver
                 return await RedditHandler.LandingAsync(id, reddit, videos, baseUrl);
             });
 
+            app.MapGet("/u/{name}/comments/{id}/{*rest}", async (string id) =>
+            {
+                return await RedditHandler.LandingAsync(id, reddit, videos, baseUrl);
+            });
+
             app.MapGet("/comments/{id}/{*rest}", async (string id) =>
             {
                 return await RedditHandler.LandingAsync(id, reddit, videos, baseUrl);
             });
+
+            
         }
 
         private static IResult Info(RedditPost? post)
