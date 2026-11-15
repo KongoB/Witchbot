@@ -1,13 +1,18 @@
-using Microsoft.Extensions.Caching.Memory;
-
 namespace embedserver
 {
     public static class RedditRoutes
     {
         public const string TestId = "999001";
 
-        public static void MapRedditRoutes(this WebApplication app, HttpClient httpClient, MemoryCache cache, string baseUrl)
+        public static void MapRedditRoutes(this WebApplication app, RedditClient reddit, string baseUrl)
         {
+            // Temporary: shows how a post was fetched and classified. Remove before going live.
+            app.MapGet("/reddit/debug/{id}", async (string id) =>
+            {
+                RedditPost? post = await reddit.GetPostAsync(id);
+                return post == null ? Results.NotFound("could not fetch post (see server log)") : Results.Json(post);
+            });
+
             app.MapGet("/test31", () => Results.Content($$"""
                 <html>
                     <head>

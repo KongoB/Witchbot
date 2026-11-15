@@ -12,6 +12,10 @@ httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (compatible; Wit
 
 var cache = new MemoryCache(new MemoryCacheOptions());
 
+// Reddit:Session / Reddit:UserAgent come from env vars Reddit__Session / Reddit__UserAgent (.env in Docker)
+// or from appsettings.Development.json when running locally with dotnet run.
+var reddit = new RedditClient(builder.Configuration["Reddit:Session"], builder.Configuration["Reddit:UserAgent"], cache);
+
 app.Use(async (context, next) =>
 {
     Console.WriteLine($"→ {context.Request.Method} {context.Request.Path}{context.Request.QueryString}");
@@ -19,7 +23,7 @@ app.Use(async (context, next) =>
 });
 
 app.MapTwitterRoutes (httpClient, cache, baseUrl);
-app.MapRedditRoutes (httpClient, cache, baseUrl);
+app.MapRedditRoutes (reddit, baseUrl);
 
 
 app.Run();
