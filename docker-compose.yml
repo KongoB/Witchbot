@@ -11,6 +11,7 @@ services:
         build: ./embedserver
         image: embedserver
         restart: always
+        env_file: .env
 
     nginx:
         image: nginx

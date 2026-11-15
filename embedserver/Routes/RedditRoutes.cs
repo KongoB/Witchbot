@@ -2,7 +2,7 @@ namespace embedserver
 {
     public static class RedditRoutes
     {
-        public const string TestId = "999001";
+        public const string TestId = "9000000000000999001";
 
         public static void MapRedditRoutes(this WebApplication app, RedditClient reddit, string baseUrl)
         {
@@ -13,7 +13,7 @@ namespace embedserver
                 return post == null ? Results.NotFound("could not fetch post (see server log)") : Results.Json(post);
             });
 
-            app.MapGet("/test31", () => Results.Content($$"""
+            app.MapGet("/test33", () => Results.Content($$"""
                 <html>
                     <head>
                         <meta property="theme-color" content="#FF4500" />
