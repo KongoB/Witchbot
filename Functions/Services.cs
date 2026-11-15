@@ -23,7 +23,7 @@ namespace vxtwitterbot.Functions
 
             {
 
-                string? output = await Sites.TwitterFunc(message, httpClient, jsonReader.BaseUrl);
+                string? output = await Sites.TwitterFunc(message, httpClient, jsonReader.BaseUrl, jsonReader.EmbedServerUrl);
 
                 if (!string.IsNullOrEmpty(output))
                 {
@@ -42,11 +42,66 @@ namespace vxtwitterbot.Functions
                         await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
                     }
                 }
-                // await Sites.RedditFunc(e, messageContent);
+                else
+                {
+                    await RedditMessageFix(e, message, jsonReader, httpClient);
+                }
                 // await Sites.PixivFunc(e, messageContent);
                 //Sites.TiktokFunc(e);
 
 
+            }
+        }
+
+        private static async Task RedditMessageFix(MessageCreatedEventArgs e, string message, JSONReader jsonReader, HttpClient httpClient)
+        {
+            DiscordMessage? reply = null;
+            bool posted = false;
+
+            try
+            {
+                RedditFix? fix = await Reddit.BuildFixAsync(message, httpClient, jsonReader.BaseUrl, jsonReader.EmbedServerUrl);
+                if (fix == null) return;   // nothing we can improve: stay silent
+
+                string footer = $"\nPosted by {e.Message.Author?.Mention}";
+                var finalMessage = new DiscordMessageBuilder()
+                    .WithContent(fix.Content + footer)
+                    .WithAllowedMentions(Mentions.None);
+
+                if (fix.VideoIds.Count > 0)
+                {
+                    // Videos take a few seconds to merge. Show a placeholder, wait, then swap in the link,
+                    // so Discord only looks at the link once the video file is ready.
+                    var placeholder = new DiscordMessageBuilder()
+                        .WithContent("⏳ Processing video…" + footer)
+                        .WithAllowedMentions(Mentions.None);
+
+                    reply = await e.Message.RespondAsync(placeholder);
+                    await Reddit.PrepareVideosAsync(fix, httpClient, jsonReader.EmbedServerUrl);
+                    await reply.ModifyAsync(finalMessage);
+                }
+                else
+                {
+                    reply = await e.Message.RespondAsync(finalMessage);
+                }
+                posted = true;
+
+                await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                await Task.Delay(2000);
+                if (e.Message.Embeds.Any())
+                {
+                    await e.Message.ModifyEmbedSuppressionAsync(hideEmbeds: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Reddit fix failed: {ex.GetType().Name}: {ex.Message}");
+
+                // Don't leave a "Processing video" message hanging if something broke half-way.
+                if (reply != null && !posted)
+                {
+                    try { await reply.DeleteAsync(); } catch { }
+                }
             }
         }
 

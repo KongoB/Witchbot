@@ -1,5 +1,6 @@
 {
-	"BaseUrl": "https://witchbot.net"
+	"BaseUrl": "https://witchbot.net",
+	"EmbedServerUrl": "http://embedserver:8080"
 }
 
 

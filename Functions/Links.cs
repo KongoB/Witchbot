@@ -41,7 +41,7 @@ namespace vxtwitterbot.Functions
             return match;
         }
 
-        public static async Task<string?> ProcessTwitterLinks(MatchCollection match, HttpClient httpClient, string baseUrl)
+        public static async Task<string?> ProcessTwitterLinks(MatchCollection match, HttpClient httpClient, string baseUrl, string embedServerUrl)
         {
 
             StringBuilder links = new StringBuilder();
@@ -51,7 +51,7 @@ namespace vxtwitterbot.Functions
 
             foreach (Match link in match)
             {
-                var response = await httpClient.GetAsync($"http://localhost:5031/check/{link.Groups[1].Value}/{link.Groups[2].Value}");
+                var response = await httpClient.GetAsync($"{embedServerUrl}/check/{link.Groups[1].Value}/{link.Groups[2].Value}");
                 string json = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<CheckResponseForTweetVideo>(json);
 

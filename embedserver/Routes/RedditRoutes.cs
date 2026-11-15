@@ -11,6 +11,27 @@ namespace embedserver
                 return post == null ? Results.NotFound("could not fetch post (see server log)") : Results.Json(post);
             });
 
+            // Called by the bot (not by Discord) before it posts anything.
+            // "info" is quick: can we read this post, is it NSFW, does it have a video that needs merging?
+            app.MapGet("/reddit/info/{id}", async (string id) =>
+            {
+                return Info(await reddit.GetPostAsync(id));
+            });
+
+            app.MapGet("/reddit/info/share/{subreddit}/{code}", async (string subreddit, string code) =>
+            {
+                string? id = await reddit.ResolveShareLinkAsync(subreddit, code);
+                return Info(id == null ? null : await reddit.GetPostAsync(id));
+            });
+
+            // "prepare" waits until the merged video is on disk, so the bot can post the link afterwards.
+            app.MapGet("/reddit/prepare/{id}", async (string id) =>
+            {
+                RedditPost? post = await reddit.GetPostAsync(id);
+                string? path = post == null ? null : await videos.GetOrCreateAsync(post);
+                return Results.Json(new { ok = path != null });
+            });
+
             // The merged video file. If it isn't on disk (first request, or it was cleaned up), this waits
             // for the merge. If the merge fails, it sends the viewer to Reddit's silent file instead.
             app.MapGet("/reddit/video/{id}.mp4", async (string id) =>
@@ -52,6 +73,20 @@ namespace embedserver
             app.MapGet("/comments/{id}/{*rest}", async (string id) =>
             {
                 return await RedditHandler.LandingAsync(id, reddit, videos, baseUrl);
+            });
+        }
+
+        private static IResult Info(RedditPost? post)
+        {
+            if (post == null) return Results.Json(new { ok = false });
+
+            return Results.Json(new
+            {
+                ok = true,
+                id = post.Id,
+                type = post.Type.ToString(),
+                nsfw = post.Nsfw,
+                needs_merge = RedditVideoService.NeedsMerge(post)
             });
         }
     }
