@@ -15,6 +15,7 @@ var cache = new MemoryCache(new MemoryCacheOptions());
 // Reddit:Session / Reddit:UserAgent come from env vars Reddit__Session / Reddit__UserAgent (.env in Docker)
 // or from appsettings.Development.json when running locally with dotnet run.
 var reddit = new RedditClient(builder.Configuration["Reddit:Session"], builder.Configuration["Reddit:UserAgent"], cache);
+var redditVideos = new RedditVideoService();
 
 app.Use(async (context, next) =>
 {
@@ -23,7 +24,7 @@ app.Use(async (context, next) =>
 });
 
 app.MapTwitterRoutes (httpClient, cache, baseUrl);
-app.MapRedditRoutes (reddit, baseUrl);
+app.MapRedditRoutes (reddit, redditVideos, baseUrl);
 app.MapMastodonRoutes (httpClient, cache, reddit, baseUrl);
 
 

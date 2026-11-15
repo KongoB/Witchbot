@@ -45,7 +45,7 @@ namespace embedserver
             if (RedditId.TryToPostId(id, out string postId))
             {
                 Console.WriteLine($"Status request for Reddit post {postId}");
-                return await RedditHandler.StatusAsync(postId, reddit);
+                return await RedditHandler.StatusAsync(postId, reddit, baseUrl);
             }
 
             Console.WriteLine($"Status request for tweet {id}");

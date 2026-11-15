@@ -16,7 +16,7 @@ namespace embedserver
         /// The page Discord's crawler fetches first. It carries plain OG tags (the fallback embed)
         /// and the activity+json link that switches Discord to the Mastodon-style embed.
         /// </summary>
-        public static async Task<IResult> LandingAsync(string postId, RedditClient reddit, string baseUrl)
+        public static async Task<IResult> LandingAsync(string postId, RedditClient reddit, RedditVideoService videos, string baseUrl)
         {
             RedditPost? post = await reddit.GetPostAsync(postId);
             string? statusId = post == null ? null : RedditId.ToStatusId(post.Id);
@@ -27,6 +27,10 @@ namespace embedserver
                 Console.WriteLine($"Reddit: no data for {postId}, redirecting to reddit.com");
                 return Results.Redirect($"https://www.reddit.com/comments/{Uri.EscapeDataString(postId)}");
             }
+
+            // Start joining video and sound now, in the background, so the file is ready (or nearly)
+            // by the time Discord asks for it. "_ =" means: start it, don't wait for it.
+            if (RedditVideoService.NeedsMerge(post)) _ = videos.GetOrCreateAsync(post);
 
             string description = post.Text.Length > 0 ? Truncate(post.Text, 200) : StatsText(post);
             string image = post.Images.Count > 0 ? post.Images[0].Url : post.ThumbnailUrl ?? DefaultAvatar;
@@ -61,7 +65,7 @@ namespace embedserver
         }
 
         /// <summary>The Mastodon-style status JSON Discord asks for after reading the landing page.</summary>
-        public static async Task<IResult> StatusAsync(string postId, RedditClient reddit)
+        public static async Task<IResult> StatusAsync(string postId, RedditClient reddit, string baseUrl)
         {
             RedditPost? post = await reddit.GetPostAsync(postId);
             string? statusId = post == null ? null : RedditId.ToStatusId(post.Id);
@@ -88,7 +92,7 @@ namespace embedserver
                 spoiler_text = "",
                 visibility = "public",
                 application = new { name = "Witchbot", website = (string?)null },
-                media_attachments = BuildMedia(post),
+                media_attachments = BuildMedia(post, baseUrl),
                 account = new
                 {
                     id = statusId,
@@ -147,16 +151,20 @@ namespace embedserver
         }
 
         /// <summary>
-        /// The pictures or video under the text. Videos use Reddit's own file for now, which has no sound;
-        /// the merged version with audio comes in the next step.
+        /// The pictures or video under the text. A video with sound points at our own /reddit/video route,
+        /// which serves the merged file; silent videos and gifs point straight at Reddit's file.
         /// </summary>
-        private static List<object> BuildMedia(RedditPost post)
+        private static List<object> BuildMedia(RedditPost post, string baseUrl)
         {
             var media = new List<object>();
 
             if (post.Video != null && post.Video.FallbackUrl.Length > 0)
             {
-                media.Add(Attachment("1", "video", post.Video.FallbackUrl, post.ThumbnailUrl, post.Video.Width, post.Video.Height));
+                string videoUrl = RedditVideoService.NeedsMerge(post)
+                    ? $"{baseUrl}/reddit/video/{post.Id}.mp4"
+                    : post.Video.FallbackUrl;
+
+                media.Add(Attachment("1", "video", videoUrl, post.ThumbnailUrl, post.Video.Width, post.Video.Height));
                 return media;
             }
 

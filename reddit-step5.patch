@@ -1,0 +1,355 @@
+diff --git a/embedserver/Program.cs b/embedserver/Program.cs
+index 357f73f..f975367 100644
+--- a/embedserver/Program.cs
++++ b/embedserver/Program.cs
+@@ -15,6 +15,7 @@ var cache = new MemoryCache(new MemoryCacheOptions());
+ // Reddit:Session / Reddit:UserAgent come from env vars Reddit__Session / Reddit__UserAgent (.env in Docker)
+ // or from appsettings.Development.json when running locally with dotnet run.
+ var reddit = new RedditClient(builder.Configuration["Reddit:Session"], builder.Configuration["Reddit:UserAgent"], cache);
++var redditVideos = new RedditVideoService();
+ 
+ app.Use(async (context, next) =>
+ {
+@@ -23,7 +24,7 @@ app.Use(async (context, next) =>
+ });
+ 
+ app.MapTwitterRoutes (httpClient, cache, baseUrl);
+-app.MapRedditRoutes (reddit, baseUrl);
++app.MapRedditRoutes (reddit, redditVideos, baseUrl);
+ app.MapMastodonRoutes (httpClient, cache, reddit, baseUrl);
+ 
+ 
+diff --git a/embedserver/RedditHandler.cs b/embedserver/RedditHandler.cs
+index e3faa20..2acaf7d 100644
+--- a/embedserver/RedditHandler.cs
++++ b/embedserver/RedditHandler.cs
+@@ -16,7 +16,7 @@ namespace embedserver
+         /// The page Discord's crawler fetches first. It carries plain OG tags (the fallback embed)
+         /// and the activity+json link that switches Discord to the Mastodon-style embed.
+         /// </summary>
+-        public static async Task<IResult> LandingAsync(string postId, RedditClient reddit, string baseUrl)
++        public static async Task<IResult> LandingAsync(string postId, RedditClient reddit, RedditVideoService videos, string baseUrl)
+         {
+             RedditPost? post = await reddit.GetPostAsync(postId);
+             string? statusId = post == null ? null : RedditId.ToStatusId(post.Id);
+@@ -28,6 +28,10 @@ namespace embedserver
+                 return Results.Redirect($"https://www.reddit.com/comments/{Uri.EscapeDataString(postId)}");
+             }
+ 
++            // Start joining video and sound now, in the background, so the file is ready (or nearly)
++            // by the time Discord asks for it. "_ =" means: start it, don't wait for it.
++            if (RedditVideoService.NeedsMerge(post)) _ = videos.GetOrCreateAsync(post);
++
+             string description = post.Text.Length > 0 ? Truncate(post.Text, 200) : StatsText(post);
+             string image = post.Images.Count > 0 ? post.Images[0].Url : post.ThumbnailUrl ?? DefaultAvatar;
+ 
+@@ -61,7 +65,7 @@ namespace embedserver
+         }
+ 
+         /// <summary>The Mastodon-style status JSON Discord asks for after reading the landing page.</summary>
+-        public static async Task<IResult> StatusAsync(string postId, RedditClient reddit)
++        public static async Task<IResult> StatusAsync(string postId, RedditClient reddit, string baseUrl)
+         {
+             RedditPost? post = await reddit.GetPostAsync(postId);
+             string? statusId = post == null ? null : RedditId.ToStatusId(post.Id);
+@@ -88,7 +92,7 @@ namespace embedserver
+                 spoiler_text = "",
+                 visibility = "public",
+                 application = new { name = "Witchbot", website = (string?)null },
+-                media_attachments = BuildMedia(post),
++                media_attachments = BuildMedia(post, baseUrl),
+                 account = new
+                 {
+                     id = statusId,
+@@ -147,16 +151,20 @@ namespace embedserver
+         }
+ 
+         /// <summary>
+-        /// The pictures or video under the text. Videos use Reddit's own file for now, which has no sound;
+-        /// the merged version with audio comes in the next step.
++        /// The pictures or video under the text. A video with sound points at our own /reddit/video route,
++        /// which serves the merged file; silent videos and gifs point straight at Reddit's file.
+         /// </summary>
+-        private static List<object> BuildMedia(RedditPost post)
++        private static List<object> BuildMedia(RedditPost post, string baseUrl)
+         {
+             var media = new List<object>();
+ 
+             if (post.Video != null && post.Video.FallbackUrl.Length > 0)
+             {
+-                media.Add(Attachment("1", "video", post.Video.FallbackUrl, post.ThumbnailUrl, post.Video.Width, post.Video.Height));
++                string videoUrl = RedditVideoService.NeedsMerge(post)
++                    ? $"{baseUrl}/reddit/video/{post.Id}.mp4"
++                    : post.Video.FallbackUrl;
++
++                media.Add(Attachment("1", "video", videoUrl, post.ThumbnailUrl, post.Video.Width, post.Video.Height));
+                 return media;
+             }
+ 
+diff --git a/embedserver/RedditVideoService.cs b/embedserver/RedditVideoService.cs
+new file mode 100644
+index 0000000..fb1fc18
+--- /dev/null
++++ b/embedserver/RedditVideoService.cs
+@@ -0,0 +1,187 @@
++using System.Collections.Concurrent;
++using System.Diagnostics;
++
++namespace embedserver
++{
++    /// <summary>
++    /// Reddit stores a video's picture and sound as separate streams. This class has ffmpeg join them into
++    /// one mp4, keeps the result on disk, and hands back the file path. The folder is only a cache: any file
++    /// can be deleted at any time and will simply be rebuilt the next time someone asks for it.
++    /// </summary>
++    public class RedditVideoService
++    {
++        public const int MaxDurationSeconds = 300;                             // longer videos keep Reddit's silent file
++        private const long MaxCacheBytes = 20L * 1024 * 1024 * 1024;           // 20 GB
++        private static readonly TimeSpan MergeTimeout = TimeSpan.FromSeconds(90);
++        private static readonly TimeSpan RetryAfterFailure = TimeSpan.FromMinutes(10);
++
++        private readonly string _dir = Path.Combine(Path.GetTempPath(), "redditvideos");
++        private readonly SemaphoreSlim _slots = new(2);                        // at most 2 ffmpeg processes at once
++        private readonly ConcurrentDictionary<string, Lazy<Task<bool>>> _inFlight = new();
++        private readonly ConcurrentDictionary<string, DateTime> _failedUntil = new();
++
++        public RedditVideoService()
++        {
++            Directory.CreateDirectory(_dir);
++        }
++
++        /// <summary>True when this post has a video with sound that we are willing to merge.</summary>
++        public static bool NeedsMerge(RedditPost post)
++        {
++            RedditVideo? video = post.Video;
++            return video != null && video.HasAudio && !video.IsGif
++                && video.Duration <= MaxDurationSeconds
++                && (video.DashUrl != null || video.HlsUrl != null);
++        }
++
++        /// <summary>
++        /// Returns the path of the merged file, building it first if needed. Returns null when there is
++        /// nothing to merge or the merge failed (never throws) - callers then fall back to the silent file.
++        /// If several requests ask for the same video at once, they all wait for the same single merge.
++        /// </summary>
++        public async Task<string?> GetOrCreateAsync(RedditPost post)
++        {
++            if (!NeedsMerge(post)) return null;
++
++            string path = Path.Combine(_dir, post.Id + ".mp4");
++            if (File.Exists(path))
++            {
++                try { File.SetLastAccessTimeUtc(path, DateTime.UtcNow); } catch { }   // marks it as recently used
++                return path;
++            }
++
++            if (_failedUntil.TryGetValue(post.Id, out DateTime until) && until > DateTime.UtcNow) return null;
++
++            Lazy<Task<bool>> merge = _inFlight.GetOrAdd(post.Id, _ => new Lazy<Task<bool>>(() => MergeAsync(post, path)));
++            bool ok;
++            try
++            {
++                ok = await merge.Value;
++            }
++            finally
++            {
++                _inFlight.TryRemove(post.Id, out _);
++            }
++
++            if (!ok) _failedUntil[post.Id] = DateTime.UtcNow + RetryAfterFailure;
++            return ok ? path : null;
++        }
++
++        private async Task<bool> MergeAsync(RedditPost post, string path)
++        {
++            // Two descriptions of the same streams; try the second if ffmpeg can't read the first.
++            var sources = new[] { post.Video!.DashUrl, post.Video.HlsUrl }
++                .Where(url => url != null && url.StartsWith("https://v.redd.it/"))
++                .ToList();
++
++            await _slots.WaitAsync();
++            try
++            {
++                foreach (string? source in sources)
++                {
++                    if (await RunFfmpegAsync(post.Id, source!, path))
++                    {
++                        TrimCache();
++                        return true;
++                    }
++                }
++                return false;
++            }
++            finally
++            {
++                _slots.Release();
++            }
++        }
++
++        private async Task<bool> RunFfmpegAsync(string postId, string source, string path)
++        {
++            // Write to a temporary name first, so a half-finished file is never served.
++            string tmp = Path.Combine(_dir, $"{postId}.{Guid.NewGuid():N}.tmp.mp4");
++            var stopwatch = Stopwatch.StartNew();
++
++            try
++            {
++                var psi = new ProcessStartInfo
++                {
++                    FileName = "ffmpeg",
++                    RedirectStandardError = true,
++                    UseShellExecute = false
++                };
++
++                // ArgumentList passes each value as its own argument - nothing is ever interpreted by a shell.
++                // "-c copy" joins the streams without re-encoding; "+faststart" lets playback begin immediately.
++                foreach (string arg in new[] { "-hide_banner", "-loglevel", "error", "-y", "-i", source,
++                                               "-c", "copy", "-movflags", "+faststart", "-f", "mp4", tmp })
++                {
++                    psi.ArgumentList.Add(arg);
++                }
++
++                using Process? process = Process.Start(psi);
++                if (process == null) return false;
++
++                // Read ffmpeg's messages while it runs; if nobody reads them, ffmpeg can freeze when the pipe fills up.
++                Task<string> errorOutput = process.StandardError.ReadToEndAsync();
++
++                using var timeout = new CancellationTokenSource(MergeTimeout);
++                try
++                {
++                    await process.WaitForExitAsync(timeout.Token);
++                }
++                catch (OperationCanceledException)
++                {
++                    try { process.Kill(entireProcessTree: true); } catch { }
++                    Console.WriteLine($"Reddit video {postId}: ffmpeg timed out and was stopped");
++                    return false;
++                }
++
++                string errors = await errorOutput;
++                if (process.ExitCode != 0 || !File.Exists(tmp) || new FileInfo(tmp).Length == 0)
++                {
++                    string shortErrors = errors.Length > 300 ? errors.Substring(0, 300) : errors;
++                    Console.WriteLine($"Reddit video {postId}: ffmpeg failed ({process.ExitCode}): {shortErrors.Trim()}");
++                    return false;
++                }
++
++                long megabytes = new FileInfo(tmp).Length / (1024 * 1024);
++                File.Move(tmp, path, overwrite: true);
++                Console.WriteLine($"Reddit video {postId}: merged {megabytes} MB in {stopwatch.Elapsed.TotalSeconds:0.0}s");
++                return true;
++            }
++            catch (Exception e)
++            {
++                // e.g. ffmpeg isn't installed on this machine
++                Console.WriteLine($"Reddit video {postId}: {e.GetType().Name}: {e.Message}");
++                return false;
++            }
++            finally
++            {
++                try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
++            }
++        }
++
++        /// <summary>Deletes the least recently used videos until the folder is back under the size limit.</summary>
++        private void TrimCache()
++        {
++            try
++            {
++                var files = new DirectoryInfo(_dir).GetFiles("*.mp4")
++                    .Where(f => !f.Name.EndsWith(".tmp.mp4"))
++                    .OrderBy(f => f.LastAccessTimeUtc)
++                    .ToList();
++
++                long total = files.Sum(f => f.Length);
++                foreach (FileInfo file in files)
++                {
++                    if (total <= MaxCacheBytes) break;
++                    total -= file.Length;
++                    file.Delete();
++                    Console.WriteLine($"Reddit video cache: removed {file.Name}");
++                }
++            }
++            catch (Exception e)
++            {
++                Console.WriteLine($"Reddit video cache cleanup failed: {e.Message}");
++            }
++        }
++    }
++}
+diff --git a/embedserver/Routes/MastodonRoutes.cs b/embedserver/Routes/MastodonRoutes.cs
+index 295e540..080f5ec 100644
+--- a/embedserver/Routes/MastodonRoutes.cs
++++ b/embedserver/Routes/MastodonRoutes.cs
+@@ -45,7 +45,7 @@ namespace embedserver
+             if (RedditId.TryToPostId(id, out string postId))
+             {
+                 Console.WriteLine($"Status request for Reddit post {postId}");
+-                return await RedditHandler.StatusAsync(postId, reddit);
++                return await RedditHandler.StatusAsync(postId, reddit, baseUrl);
+             }
+ 
+             Console.WriteLine($"Status request for tweet {id}");
+diff --git a/embedserver/Routes/RedditRoutes.cs b/embedserver/Routes/RedditRoutes.cs
+index ab8f76b..83d3119 100644
+--- a/embedserver/Routes/RedditRoutes.cs
++++ b/embedserver/Routes/RedditRoutes.cs
+@@ -2,7 +2,7 @@ namespace embedserver
+ {
+     public static class RedditRoutes
+     {
+-        public static void MapRedditRoutes(this WebApplication app, RedditClient reddit, string baseUrl)
++        public static void MapRedditRoutes(this WebApplication app, RedditClient reddit, RedditVideoService videos, string baseUrl)
+         {
+             // Temporary: shows how a post was fetched and classified. Remove before going live.
+             app.MapGet("/reddit/debug/{id}", async (string id) =>
+@@ -11,11 +11,25 @@ namespace embedserver
+                 return post == null ? Results.NotFound("could not fetch post (see server log)") : Results.Json(post);
+             });
+ 
++            // The merged video file. If it isn't on disk (first request, or it was cleaned up), this waits
++            // for the merge. If the merge fails, it sends the viewer to Reddit's silent file instead.
++            app.MapGet("/reddit/video/{id}.mp4", async (string id) =>
++            {
++                RedditPost? post = await reddit.GetPostAsync(id);
++                if (post?.Video == null) return Results.NotFound("no video");
++
++                string? path = await videos.GetOrCreateAsync(post);
++                if (path == null) return Results.Redirect(post.Video.FallbackUrl);
++
++                // enableRangeProcessing lets the player ask for parts of the file, which is how seeking works.
++                return Results.File(path, "video/mp4", enableRangeProcessing: true);
++            });
++
+             // Landing pages. The paths copy Reddit's own, so swapping reddit.com for our domain just works.
+             // {*rest} swallows whatever follows the ID (the title slug, a trailing slash, or nothing).
+             app.MapGet("/r/{subreddit}/comments/{id}/{*rest}", async (string id) =>
+             {
+-                return await RedditHandler.LandingAsync(id, reddit, baseUrl);
++                return await RedditHandler.LandingAsync(id, reddit, videos, baseUrl);
+             });
+ 
+             // Share links from the Reddit app: /r/sub/s/CODE. Find the real post first, then behave as above.
+@@ -27,17 +41,17 @@ namespace embedserver
+                     return Results.Redirect($"https://www.reddit.com/r/{Uri.EscapeDataString(subreddit)}/s/{Uri.EscapeDataString(code)}");
+                 }
+ 
+-                return await RedditHandler.LandingAsync(id, reddit, baseUrl);
++                return await RedditHandler.LandingAsync(id, reddit, videos, baseUrl);
+             });
+ 
+             app.MapGet("/user/{name}/comments/{id}/{*rest}", async (string id) =>
+             {
+-                return await RedditHandler.LandingAsync(id, reddit, baseUrl);
++                return await RedditHandler.LandingAsync(id, reddit, videos, baseUrl);
+             });
+ 
+             app.MapGet("/comments/{id}/{*rest}", async (string id) =>
+             {
+-                return await RedditHandler.LandingAsync(id, reddit, baseUrl);
++                return await RedditHandler.LandingAsync(id, reddit, videos, baseUrl);
+             });
+         }
+     }
