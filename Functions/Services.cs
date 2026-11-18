@@ -57,10 +57,11 @@ namespace vxtwitterbot.Functions
         {
             DiscordMessage? reply = null;
             bool posted = false;
+            bool nsfwChannel = e.Channel.IsNSFW || (e.Channel.Parent?.IsNSFW ?? false);
 
             try
             {
-                RedditFix? fix = await Reddit.BuildFixAsync(message, httpClient, jsonReader.BaseUrl, jsonReader.EmbedServerUrl);
+                RedditFix? fix = await Reddit.BuildFixAsync(message, httpClient, jsonReader.BaseUrl, jsonReader.EmbedServerUrl, nsfwChannel);
                 if (fix == null) return;   // nothing we can improve: stay silent
 
                 string footer = $"\nPosted by {e.Message.Author?.Mention}";

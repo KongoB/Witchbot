@@ -40,7 +40,7 @@ namespace vxtwitterbot.Functions
         /// Returns null when there is nothing to fix (no links, or the embedserver couldn't read any of them),
         /// in which case the bot stays silent and the original message keeps Reddit's own embed.
         /// </summary>
-        public static async Task<RedditFix?> BuildFixAsync(string message, HttpClient httpClient, string baseUrl, string embedServerUrl)
+        public static async Task<RedditFix?> BuildFixAsync(string message, HttpClient httpClient, string baseUrl, string embedServerUrl, bool nsfwChannel)
         {
             if (!message.Contains("reddit.com") || Links.CheckIfLinkHasBrackets(message)) return null;
 
@@ -66,7 +66,7 @@ namespace vxtwitterbot.Functions
                 if (info == null || !info.Ok) continue;   // can't read this post: leave it alone
 
                 string url = baseUrl + path;
-                string line = (spoilered || info.Nsfw) ? $"|| {url} ||" : url;
+                string line = (spoilered || info.Nsfw && !nsfwChannel) ? $"|| {url} ||" : url;
                 if (info.Nsfw) line = "**NSFW**\n" + line;
                 lines.Add(line);
 
